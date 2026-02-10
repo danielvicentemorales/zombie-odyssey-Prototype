@@ -2,6 +2,8 @@
 // ZOMBIE COMP ODYSSEY - Input Handling
 // ============================================================
 
+var eKeyWasDown = false;
+
 window.addEventListener('keydown', function(e) {
   keys[e.key.toLowerCase()] = true;
 });
@@ -25,7 +27,11 @@ window.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
 // Prevent default for game keys
 window.addEventListener('keydown', function(e) {
-  if (['w','a','s','d',' ','r','e'].includes(e.key.toLowerCase())) {
+  if (['w','a','s','d',' ','r','e','1','2','3','4'].includes(e.key.toLowerCase())) {
     e.preventDefault();
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (gameRunning) togglePause();
   }
 });

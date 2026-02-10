@@ -17,6 +17,20 @@ function updateHUD() {
   document.getElementById('weapon-display').textContent = player.weapon.name + (player.reloading ? ' [RELOADING]' : '');
   document.getElementById('ammo-mag').textContent = player.ammo;
 
+  // Wave / Room display
+  if (gameMode === 'odyssey') {
+    if (hubRoom) {
+      var cleared = Object.keys(roomsCleared).length;
+      document.getElementById('wave-display').textContent = 'HUB - ' + Math.min(cleared, 4) + '/4 CLEARED';
+    } else {
+      var roomName = ROOMS[currentRoom].name;
+      if (ROOMS[currentRoom].type === 'staged') {
+        roomName += roomStage === 'pre' ? ' [CHALLENGE]' : ' [BOSS]';
+      }
+      document.getElementById('wave-display').textContent = roomName;
+    }
+  }
+
   // Combo display
   var comboEl = document.getElementById('combo-display');
   if (combo >= 3) {
@@ -38,7 +52,7 @@ function showNotification(text) {
 function showDamageNumber(x, y, dmg, crit) {
   var el = document.createElement('div');
   el.className = 'damage-number' + (crit ? ' crit' : '');
-  el.textContent = (crit ? '💥' : '') + dmg;
+  el.textContent = dmg;
   el.style.left = ((x - camera.x) * cameraZoom) + 'px';
   el.style.top = ((y - camera.y) * cameraZoom) + 'px';
   document.body.appendChild(el);
@@ -59,4 +73,82 @@ function showWaveBanner(waveNum) {
   banner.classList.add('show');
   setTimeout(function() { banner.classList.remove('show'); }, 2500);
   document.getElementById('wave-display').textContent = 'WAVE ' + waveNum;
+}
+
+// ===== ROOM BANNER =====
+function showRoomBanner(room) {
+  var banner = document.getElementById('wave-banner');
+
+  if (room.type === 'hub') {
+    var cleared = Object.keys(roomsCleared).length;
+    banner.innerHTML = room.name + '<span class="sub">' + cleared + '/4 CLEARED - ' + room.tagline + '</span>';
+    banner.classList.add('show');
+    setTimeout(function() { banner.classList.remove('show'); }, 3000);
+    document.getElementById('wave-display').textContent = 'HUB - ' + cleared + '/4 CLEARED';
+    return;
+  }
+
+  var typeLabel = room.type === 'staged' ? (room.preStage.type.toUpperCase() + ' + BOSS') : room.type.toUpperCase();
+  banner.innerHTML = room.name + '<span class="sub">' + typeLabel + ' - ' + room.tagline + '</span>';
+  banner.classList.add('show');
+  setTimeout(function() { banner.classList.remove('show'); }, 3000);
+  document.getElementById('wave-display').textContent = room.name;
+}
+
+// ===== ROOM TRANSITION (perk pick between rooms) =====
+function showRoomTransition(callback) {
+  gamePaused = true;
+  var screen = document.getElementById('levelup-screen');
+  var grid = document.getElementById('perk-grid');
+  var titleEl = screen.querySelector('.levelup-title');
+  var subtitleEl = screen.querySelector('.levelup-subtitle');
+
+  titleEl.textContent = 'ROOM CLEARED!';
+  subtitleEl.textContent = 'CHOOSE A PERK';
+
+  screen.classList.add('active');
+  grid.innerHTML = '';
+
+  var available = ALL_PERKS.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 3);
+
+  available.forEach(function(perk) {
+    var card = document.createElement('div');
+    card.className = 'perk-card';
+    card.innerHTML =
+      '<div class="perk-icon">' + perk.icon + '</div>' +
+      '<div class="perk-name">' + perk.name + '</div>' +
+      '<div class="perk-desc">' + perk.desc + '</div>';
+    card.onclick = function() {
+      perk.apply(player);
+      player.perks.push(perk.name);
+      screen.classList.remove('active');
+      // Reset title for normal level-ups
+      titleEl.textContent = 'LEVEL UP!';
+      gamePaused = false;
+      if (callback) callback();
+    };
+    grid.appendChild(card);
+  });
+}
+
+// ===== VICTORY SCREEN =====
+function showVictoryScreen() {
+  gameRunning = false;
+
+  var screen = document.getElementById('gameover-screen');
+  var titleEl = screen.querySelector('.gameover-title');
+  titleEl.textContent = 'EXTRACTED!';
+  titleEl.style.color = '#39FF14';
+  titleEl.style.textShadow = '0 0 40px rgba(57,255,20,0.8)';
+
+  document.getElementById('go-wave').textContent = 'ALL';
+  document.getElementById('go-kills').textContent = kills;
+  document.getElementById('go-score').textContent = Math.floor(score);
+  document.getElementById('go-level').textContent = player.level;
+
+  // Change stat label
+  var statLabels = screen.querySelectorAll('.gameover-stat-label');
+  if (statLabels.length > 0) statLabels[0].textContent = 'ROOMS';
+
+  screen.classList.add('active');
 }

@@ -14,12 +14,11 @@
   <div class="menu-title">ZOMBIE ODYSSEY</div>
   <div class="menu-subtitle">COMPETITIVE SURVIVAL</div>
   <div class="menu-options">
-    <button class="menu-btn primary" onclick="showClassSelect()">&#9654; PLAY SOLO</button>
-    <button class="menu-btn" onclick="showClassSelect()">&#9876; CO-OP (2P LOCAL)</button>
-    <button class="menu-btn" onclick="showClassSelect()">&#127942; ENDLESS MODE</button>
+    <button class="menu-btn primary" onclick="showClassSelect('odyssey')">&#9876; ODYSSEY MODE</button>
+    <button class="menu-btn" onclick="showClassSelect('endless')">&#127942; ENDLESS MODE</button>
   </div>
   <div class="menu-controls">
-    <span>WASD</span> Move &nbsp;|&nbsp; <span>MOUSE</span> Aim &amp; Shoot &nbsp;|&nbsp; <span>R</span> Reload &nbsp;|&nbsp; <span>SPACE</span> Dash &nbsp;|&nbsp; <span>E</span> Interact &nbsp;|&nbsp; <span>1-3</span> Weapons
+    <span>WASD</span> Move &nbsp;|&nbsp; <span>MOUSE</span> Aim &amp; Shoot &nbsp;|&nbsp; <span>R</span> Reload &nbsp;|&nbsp; <span>SPACE</span> Dash &nbsp;|&nbsp; <span>E</span> Interact &nbsp;|&nbsp; <span>ESC</span> Pause
   </div>
 </div>
 
@@ -27,41 +26,35 @@
 <div id="class-screen">
   <div class="class-title">CHOOSE YOUR SURVIVOR</div>
   <div class="class-grid">
-    <div class="class-card" onclick="startGame('marine')">
-      <div class="class-icon">&#127894;&#65039;</div>
-      <div class="class-name">MARINE</div>
-      <div class="class-desc">Balanced firepower. Fast reload.</div>
-      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</div>
+    <div class="class-card" onclick="startGame('bulwark', selectedMode)">
+      <div class="class-icon">&#128737;&#65039;</div>
+      <div class="class-name">BULWARK</div>
+      <div class="class-desc">Heavy tank. Shotgun. 25% damage reduction.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9608;&#9608; DMG: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</div>
     </div>
-    <div class="class-card" onclick="startGame('medic')">
-      <div class="class-icon">&#128137;</div>
-      <div class="class-name">MEDIC</div>
-      <div class="class-desc">Heals over time. AOE support.</div>
-      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; DMG: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617;</div>
+    <div class="class-card" onclick="startGame('mender', selectedMode)">
+      <div class="class-icon">&#128154;</div>
+      <div class="class-name">MENDER</div>
+      <div class="class-desc">HP regen. Deploys Bio-Totems that heal &amp; slow.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; DMG: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617;</div>
     </div>
-    <div class="class-card" onclick="startGame('berserker')">
-      <div class="class-icon">&#129683;</div>
-      <div class="class-name">BERSERKER</div>
-      <div class="class-desc">Melee beast. Lifesteal on kill.</div>
-      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9608;&#9608; DMG: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; SPD: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</div>
-    </div>
-    <div class="class-card" onclick="startGame('scout')">
-      <div class="class-icon">&#9889;</div>
-      <div class="class-name">SCOUT</div>
-      <div class="class-desc">Lightning fast. Double dash.</div>
+    <div class="class-card" onclick="startGame('rift', selectedMode)">
+      <div class="class-icon">&#127744;</div>
+      <div class="class-name">RIFT</div>
+      <div class="class-desc">Lightning fast assassin. Dual pistols. Double dash.</div>
       <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</div>
     </div>
-    <div class="class-card" onclick="startGame('engineer')">
-      <div class="class-icon">&#128295;</div>
-      <div class="class-name">ENGINEER</div>
-      <div class="class-desc">Deploys turrets. Area denial.</div>
+    <div class="class-card" onclick="startGame('warden', selectedMode)">
+      <div class="class-icon">&#127919;</div>
+      <div class="class-name">WARDEN</div>
+      <div class="class-desc">Sentinel. Rifle precision. Auto-deploys turrets.</div>
       <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617;</div>
     </div>
-    <div class="class-card" onclick="startGame('pyro')">
-      <div class="class-icon">&#128293;</div>
-      <div class="class-name">PYRO</div>
-      <div class="class-desc">Fire damage. Burns spread.</div>
-      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</div>
+    <div class="class-card" onclick="startGame('shadow', selectedMode)">
+      <div class="class-icon">&#129399;</div>
+      <div class="class-name">SHADOW</div>
+      <div class="class-desc">Katana ninja. Melee slashes pierce. Kills reset dash.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617;</div>
     </div>
   </div>
 </div>
@@ -96,6 +89,17 @@
 
 <!-- SCREEN FLASH -->
 <div id="screen-flash"></div>
+
+<!-- PAUSE -->
+<div id="pause-screen">
+  <div class="pause-title">PAUSED</div>
+  <div class="pause-controls">
+    <span>ESC</span> Resume &nbsp;|&nbsp; <span>WASD</span> Move &nbsp;|&nbsp; <span>MOUSE</span> Aim &amp; Shoot<br>
+    <span>R</span> Reload &nbsp;|&nbsp; <span>SPACE</span> Dash &nbsp;|&nbsp; <span>E</span> Interact
+  </div>
+  <button class="menu-btn primary" onclick="togglePause()">&#9654; RESUME</button>
+  <button class="menu-btn" style="margin-top:10px" onclick="location.reload()">QUIT TO MENU</button>
+</div>
 
 <!-- LEVEL UP -->
 <div id="levelup-screen">
@@ -145,7 +149,22 @@
 <script src="js/perks.js"></script>
 <script src="js/combat.js"></script>
 <script src="js/waves.js"></script>
+<script src="js/hazards.js"></script>
+<script src="js/boss.js"></script>
+<script src="js/rooms.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/main.js"></script>
+
+<script>
+// Mode selection tracking
+var selectedMode = 'odyssey';
+
+// Override showClassSelect to track mode
+var _origShowClassSelect = showClassSelect;
+showClassSelect = function(mode) {
+  selectedMode = mode || 'odyssey';
+  _origShowClassSelect();
+};
+</script>
 </body>
 </html>
