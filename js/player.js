@@ -39,12 +39,29 @@ function createPlayer(className) {
     lifesteal: 0,
     magnetRange: 80,
     luckMulti: 1,
+    critChance: 0.15,
     damageReduction: c.damageReduction || 0,
     turretTimer: 0,
     totemTimer: 0,
     invincible: 0,
     perks: [],
     kills: 0,
+    // Dual weapon system
+    primaryWeapon: Object.assign({}, c.weapon),
+    secondaryWeapon: Object.assign({}, c.secondaryWeapon),
+    activeWeaponSlot: 1,
+    primaryAmmo: c.weapon.mag,
+    secondaryAmmo: c.secondaryWeapon.mag,
+    primaryReloading: false,
+    primaryReloadTimer: 0,
+    secondaryReloading: false,
+    secondaryReloadTimer: 0,
+    weaponSwapTimer: 0,
+    weaponSwapCooldown: 15,
+    // Grenade system (Bulwark only)
+    grenadeCount: className === 'bulwark' ? 3 : 0,
+    grenadeMax: 5,
+    grenadeCooldown: 0,
     // Ability system
     abilities: (function() {
       var defs = CLASS_ABILITIES[className];
@@ -58,4 +75,37 @@ function createPlayer(className) {
     overchargeTimer: 0,
     scanTimer: 0
   };
+}
+
+function swapWeapon(p, slot) {
+  if (slot === p.activeWeaponSlot) return;
+  if (p.weaponSwapTimer > 0) return;
+
+  // Save current weapon state to the appropriate slot
+  if (p.activeWeaponSlot === 1) {
+    p.primaryAmmo = p.ammo;
+    p.primaryReloading = p.reloading;
+    p.primaryReloadTimer = p.reloadTimer;
+  } else {
+    p.secondaryAmmo = p.ammo;
+    p.secondaryReloading = p.reloading;
+    p.secondaryReloadTimer = p.reloadTimer;
+  }
+
+  // Switch to new slot
+  p.activeWeaponSlot = slot;
+  if (slot === 1) {
+    p.weapon = Object.assign({}, p.primaryWeapon);
+    p.ammo = p.primaryAmmo;
+    p.reloading = p.primaryReloading;
+    p.reloadTimer = p.primaryReloadTimer;
+  } else {
+    p.weapon = Object.assign({}, p.secondaryWeapon);
+    p.ammo = p.secondaryAmmo;
+    p.reloading = p.secondaryReloading;
+    p.reloadTimer = p.secondaryReloadTimer;
+  }
+
+  p.fireTimer = 0;
+  p.weaponSwapTimer = p.weaponSwapCooldown;
 }

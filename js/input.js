@@ -27,7 +27,7 @@ window.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
 // Prevent default for game keys
 window.addEventListener('keydown', function(e) {
-  if (['w','a','s','d',' ','r','e','1','2','3','4'].includes(e.key.toLowerCase())) {
+  if (['w','a','s','d',' ','r','e','1','2','3','4','q','f','c','g'].includes(e.key.toLowerCase())) {
     e.preventDefault();
   }
   if (e.key === 'Escape') {

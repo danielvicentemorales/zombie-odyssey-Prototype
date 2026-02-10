@@ -4,7 +4,7 @@
 
 function startWave() {
   wave++;
-  waveCooldown = 180; // 3 second breather
+  waveCooldown = 240; // 4 second breather
   showWaveBanner(wave);
 }
 
@@ -15,8 +15,10 @@ function getWaveTagline() {
 }
 
 function spawnWaveZombies() {
-  var count = Math.floor(5 + wave * 2.5 + wave * wave * 0.15);
+  var count = Math.floor(4 + wave * 1.8 + Math.min(wave * wave * 0.06, 30));
   zombiesRemaining = count;
+
+  var spawnDelay = Math.max(300, 800 - wave * 15);
 
   for (var i = 0; i < count; i++) {
     (function(delay) {
@@ -24,7 +26,7 @@ function spawnWaveZombies() {
         if (!gameRunning) return;
         spawnZombie();
       }, delay);
-    })(i * Math.max(100, 500 - wave * 20));
+    })(i * spawnDelay);
   }
 
   // Boss every 5 waves
@@ -32,7 +34,7 @@ function spawnWaveZombies() {
     setTimeout(function() {
       if (!gameRunning) return;
       spawnZombie('boss');
-    }, 2000);
+    }, 2500);
   }
 }
 
@@ -56,13 +58,13 @@ function spawnZombie(forceType) {
   var base = ZOMBIE_TYPES[type];
   var waveScale = 1 + (wave - 1) * 0.12;
 
-  zombies.push({
+  var zombie = {
     x: Math.max(20, Math.min(WORLD_W - 20, x)),
     y: Math.max(20, Math.min(WORLD_H - 20, y)),
     vx: 0, vy: 0,
     hp: Math.floor(base.hp * waveScale),
     maxHp: Math.floor(base.hp * waveScale),
-    speed: base.speed + (wave - 1) * 0.03,
+    speed: base.speed + (wave - 1) * 0.02,
     damage: Math.floor(base.damage * (1 + (wave - 1) * 0.08)),
     radius: base.radius,
     color: base.color,
@@ -79,5 +81,15 @@ function spawnZombie(forceType) {
     shootCd: 0,
     knockback: 0,
     kbx: 0, kby: 0
-  });
+  };
+
+  if (type === 'spitter') {
+    var patterns = ['spread', 'burst', 'aimed_double'];
+    zombie.patternType = patterns[Math.floor(Math.random() * patterns.length)];
+    zombie.burstQueue = 0;
+    zombie.burstTimer = 0;
+    zombie.burstAngle = 0;
+  }
+
+  zombies.push(zombie);
 }

@@ -14,7 +14,8 @@ function updateHUD() {
   document.getElementById('level-display').textContent = 'LVL ' + player.level;
   document.getElementById('score-display').textContent = Math.floor(score);
   document.getElementById('kills-display').textContent = 'KILLS: ' + kills;
-  document.getElementById('weapon-display').textContent = player.weapon.name + (player.reloading ? ' [RELOADING]' : '');
+  var slotLabel = '[' + player.activeWeaponSlot + '] ';
+  document.getElementById('weapon-display').textContent = slotLabel + player.weapon.name + (player.reloading ? ' [RELOADING]' : '');
   document.getElementById('ammo-mag').textContent = player.ammo;
 
   // Wave / Room display
@@ -138,8 +139,8 @@ function showVictoryScreen() {
   var screen = document.getElementById('gameover-screen');
   var titleEl = screen.querySelector('.gameover-title');
   titleEl.textContent = 'EXTRACTED!';
-  titleEl.style.color = '#39FF14';
-  titleEl.style.textShadow = '0 0 40px rgba(57,255,20,0.8)';
+  titleEl.style.color = '#8FA85A';
+  titleEl.style.textShadow = '0 2px 4px rgba(0,0,0,0.6)';
 
   document.getElementById('go-wave').textContent = 'ALL';
   document.getElementById('go-kills').textContent = kills;

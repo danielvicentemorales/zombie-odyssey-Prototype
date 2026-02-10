@@ -20,6 +20,9 @@ function shoot() {
   var pellets = player.weapon.pellets || 1;
   var isFlame = player.weapon.flame || false;
   var isSlash = player.weapon.slash || false;
+  var isDart = player.weapon.dart || false;
+  var isPlasma = player.weapon.plasma || false;
+  var isThrowingStar = player.weapon.throwingStar || false;
 
   for (var i = 0; i < pellets; i++) {
     var spread = (Math.random() - 0.5) * player.weapon.spread * 2 * player.spreadMulti;
@@ -32,9 +35,12 @@ function shoot() {
       vy: Math.sin(angle) * player.weapon.bulletSpeed,
       damage: Math.floor(player.weapon.damage * player.damageMulti),
       pierce: isSlash ? player.pierce + 3 : player.pierce,
-      life: isFlame ? 15 : (isSlash ? 8 : 60),
+      life: isFlame ? 15 : (isSlash ? 8 : (isDart ? 45 : (isPlasma ? 50 : 60))),
       isFlame: isFlame,
       isSlash: isSlash,
+      isDart: isDart,
+      isPlasma: isPlasma,
+      isThrowingStar: isThrowingStar,
       slashAngle: angle,
       owner: 'player'
     });
@@ -46,7 +52,7 @@ function shoot() {
   screenShake = Math.max(screenShake, isFlame ? 1 : (isSlash ? 2 : 3));
 
   // Muzzle flash / slash trail particles
-  var flashColor = isSlash ? '#bb88ff' : (isFlame ? '#ff6600' : '#ffff44');
+  var flashColor = isSlash ? '#AAA090' : (isFlame ? '#ff6600' : '#C4A060');
   for (var j = 0; j < (isSlash ? 5 : 3); j++) {
     particles.push({
       x: player.x + Math.cos(player.angle) * 22,
@@ -102,7 +108,7 @@ function damageZombie(zombie, dmg, bullet) {
   if (zombie === bossEntity && bossEntity && bossEntity.invulnTimer > 0) return false;
 
   var scanBonus = player.scanTimer > 0 ? 1.3 : 1;
-  var crit = Math.random() < 0.15;
+  var crit = Math.random() < player.critChance;
   var finalDmg = crit ? Math.floor(dmg * 2 * scanBonus) : Math.floor(dmg * scanBonus);
   zombie.hp -= finalDmg;
 
@@ -303,7 +309,7 @@ function executeAbility(abilityIndex) {
           x: player.x + (Math.random() - 0.5) * 30,
           y: player.y + (Math.random() - 0.5) * 30,
           vx: (Math.random() - 0.5) * 2, vy: -2 - Math.random() * 2,
-          life: 20, maxLife: 20, color: '#44cc88', size: 3
+          life: 20, maxLife: 20, color: '#5C7A45', size: 3
         });
       }
       showNotification('+30 HP');
@@ -322,7 +328,7 @@ function executeAbility(abilityIndex) {
         particles.push({
           x: player.x, y: player.y,
           vx: Math.cos(pnA) * 5, vy: Math.sin(pnA) * 5,
-          life: 20, maxLife: 20, color: '#44cc88', size: 4
+          life: 20, maxLife: 20, color: '#5C7A45', size: 4
         });
       }
       screenShake = 3;
@@ -351,7 +357,7 @@ function executeAbility(abilityIndex) {
         particles.push({
           x: oldX + (player.x - oldX) * t, y: oldY + (player.y - oldY) * t,
           vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-          life: 15, maxLife: 15, color: '#cc66ff', size: 3
+          life: 15, maxLife: 15, color: '#A67C52', size: 3
         });
       }
       player.invincible = Math.max(player.invincible, 10);
@@ -378,7 +384,7 @@ function executeAbility(abilityIndex) {
           x: player.x + Math.cos(sfA) * sfRadius * 0.5,
           y: player.y + Math.sin(sfA) * sfRadius * 0.5,
           vx: Math.cos(sfA) * 3, vy: Math.sin(sfA) * 3,
-          life: 15, maxLife: 15, color: '#88ccff', size: 3
+          life: 15, maxLife: 15, color: '#8AAFCC', size: 3
         });
       }
       screenShake = 4;
@@ -392,7 +398,7 @@ function executeAbility(abilityIndex) {
           x: player.x + (Math.random() - 0.5) * 20,
           y: player.y + (Math.random() - 0.5) * 20,
           vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
-          life: 25, maxLife: 25, color: '#cc66ff', size: 4
+          life: 25, maxLife: 25, color: '#A67C52', size: 4
         });
       }
       showNotification('PHASE SHIFT! INVINCIBLE');
@@ -484,7 +490,7 @@ function executeAbility(abilityIndex) {
           x: player.x + Math.cos(bfA) * furyRadius * 0.5,
           y: player.y + Math.sin(bfA) * furyRadius * 0.5,
           vx: Math.cos(bfA) * 5, vy: Math.sin(bfA) * 5,
-          life: 15, maxLife: 15, color: '#bb88ff', size: 4
+          life: 15, maxLife: 15, color: '#AAA090', size: 4
         });
       }
       screenShake = 4;
@@ -558,4 +564,32 @@ function createExplosion(x, y, radius, damage) {
       size: 3 + Math.random() * 4
     });
   }
+}
+
+// ===== GRENADES (Bulwark) =====
+
+function throwGrenade() {
+  if (!player || player.className !== 'bulwark') return;
+  if (player.grenadeCount <= 0) return;
+  if (player.grenadeCooldown > 0) return;
+
+  var angle = player.angle;
+  var speed = 6;
+
+  grenades.push({
+    x: player.x + Math.cos(angle) * 20,
+    y: player.y + Math.sin(angle) * 20,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    z: 5,
+    vz: 3,
+    fuseTimer: 120,
+    radius: 80,
+    damage: 40,
+    bounced: false
+  });
+
+  player.grenadeCount--;
+  player.grenadeCooldown = 60;
+  screenShake = Math.max(screenShake, 2);
 }
