@@ -18,18 +18,17 @@ Open `index.html` in any modern browser. No server required.
 
 ## Classes
 
-| Class | Style |
-|-------|-------|
-| Marine | Balanced firepower, fast reload |
-| Medic | HP regen, AOE support |
-| Berserker | Shotgun, lifesteal on kill |
-| Scout | Fast movement, double dash |
-| Engineer | Deploys turrets |
-| Pyro | Flamethrower, burn DOT |
+| Class | Role | Weapon | Passive |
+|-------|------|--------|---------|
+| Bulwark | Tank | Shotgun | 25% damage reduction |
+| Mender | Support | SMG | HP regen + Bio-Totems (heal & slow) |
+| Rift | Assassin | Dual Pistols | Double dash |
+| Warden | Sentinel | Rifle | Auto-deploy turrets |
+| Shadow | Ninja | Katana | Kills reset dash cooldown |
 
 ## Features
 
-- 6 playable classes with unique weapons and passives
+- 5 playable classes with unique weapons and passives
 - Wave-based zombie spawning with 6 enemy types (walker, runner, tank, spitter, exploder, boss)
 - 15 perks to choose on level-up
 - Combo system with score multiplier

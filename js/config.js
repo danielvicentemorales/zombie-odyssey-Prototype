@@ -7,35 +7,31 @@ var WORLD_H = 3000;
 
 // ===== CHARACTER CLASSES =====
 var CLASSES = {
-  marine: {
-    hp: 100, speed: 3.2, dashCd: 2, dashDist: 150,
-    weapon: { name: 'ASSAULT RIFLE', damage: 12, fireRate: 80, spread: 0.06, mag: 30, reload: 1.5, auto: true, bulletSpeed: 14 },
-    color: '#44aa44', passive: 'Fast reload (-30%)'
+  bulwark: {
+    hp: 180, speed: 2.2, dashCd: 3, dashDist: 100,
+    weapon: { name: 'SHOTGUN', damage: 10, fireRate: 500, spread: 0.22, mag: 6, reload: 2.2, auto: false, bulletSpeed: 14, pellets: 5 },
+    color: '#cc4444', passive: 'Damage reduction: -25%',
+    damageReduction: 0.25
   },
-  medic: {
-    hp: 120, speed: 2.8, dashCd: 3, dashDist: 120,
-    weapon: { name: 'SMG', damage: 8, fireRate: 60, spread: 0.1, mag: 40, reload: 1.2, auto: true, bulletSpeed: 12 },
-    color: '#44aaff', passive: 'Regen 1 HP/sec'
+  mender: {
+    hp: 110, speed: 3.0, dashCd: 2.5, dashDist: 130,
+    weapon: { name: 'SMG', damage: 7, fireRate: 55, spread: 0.1, mag: 35, reload: 1.3, auto: true, bulletSpeed: 12 },
+    color: '#44cc88', passive: 'Regen 1 HP/sec + Bio-Totems'
   },
-  berserker: {
-    hp: 150, speed: 2.5, dashCd: 2.5, dashDist: 180,
-    weapon: { name: 'SHOTGUN', damage: 8, fireRate: 500, spread: 0.2, mag: 6, reload: 2, auto: false, bulletSpeed: 16, pellets: 6 },
-    color: '#ff4444', passive: 'Lifesteal: +5 HP per kill'
+  rift: {
+    hp: 75, speed: 4.2, dashCd: 1, dashDist: 200,
+    weapon: { name: 'DUAL PISTOLS', damage: 13, fireRate: 100, spread: 0.05, mag: 24, reload: 1.0, auto: true, bulletSpeed: 16 },
+    color: '#cc66ff', passive: 'Double dash'
   },
-  scout: {
-    hp: 70, speed: 4.5, dashCd: 1, dashDist: 200,
-    weapon: { name: 'DUAL PISTOLS', damage: 14, fireRate: 120, spread: 0.04, mag: 24, reload: 1, auto: true, bulletSpeed: 16 },
-    color: '#ffaa00', passive: 'Double dash'
-  },
-  engineer: {
+  warden: {
     hp: 100, speed: 2.8, dashCd: 3, dashDist: 120,
-    weapon: { name: 'RIFLE', damage: 18, fireRate: 250, spread: 0.02, mag: 15, reload: 2, auto: false, bulletSpeed: 18 },
-    color: '#aa44ff', passive: 'Deploy turret every 20s'
+    weapon: { name: 'RIFLE', damage: 20, fireRate: 280, spread: 0.02, mag: 12, reload: 2.0, auto: false, bulletSpeed: 18 },
+    color: '#ffaa44', passive: 'Deploy turret every 20s'
   },
-  pyro: {
-    hp: 80, speed: 3.5, dashCd: 2, dashDist: 140,
-    weapon: { name: 'FLAMETHROWER', damage: 4, fireRate: 30, spread: 0.3, mag: 100, reload: 2.5, auto: true, bulletSpeed: 8, flame: true },
-    color: '#ff6600', passive: 'Burn: enemies take DOT'
+  shadow: {
+    hp: 85, speed: 3.8, dashCd: 1.5, dashDist: 170,
+    weapon: { name: 'KATANA', damage: 22, fireRate: 20, spread: 0.4, mag: 999, reload: 0.1, auto: true, bulletSpeed: 10, slash: true, pellets: 3 },
+    color: '#6644aa', passive: 'Kills reset dash cooldown'
   }
 };
 
@@ -67,3 +63,37 @@ var ALL_PERKS = [
   { icon: '💥', name: 'EXPLOSIVE',      desc: 'Kills have 20% explode chance', apply: function(p) { p.explosive = true; }},
   { icon: '🩸', name: 'VAMPIRIC',       desc: '+3 HP per kill',                apply: function(p) { p.lifesteal += 3; }},
 ];
+
+// ===== CLASS ABILITIES (keys 1-4) =====
+var CLASS_ABILITIES = {
+  bulwark: [
+    { name: 'SHIELD BASH', desc: 'AoE knockback + stun', cd: 600 },
+    { name: 'FORTIFY', desc: '50% DR for 4s', cd: 1080 },
+    { name: 'WAR CRY', desc: 'Heal 25 + stun nearby', cd: 1200 },
+    { name: 'GROUND POUND', desc: 'AoE 40 damage', cd: 1500 }
+  ],
+  mender: [
+    { name: 'BIO-TOTEM', desc: 'Deploy heal totem', cd: 1200 },
+    { name: 'HEAL PULSE', desc: 'Instant +30 HP', cd: 840 },
+    { name: 'POISON NOVA', desc: 'Burn nearby enemies', cd: 960 },
+    { name: 'SHIELD SURGE', desc: '+25 shield', cd: 1200 }
+  ],
+  rift: [
+    { name: 'BLINK', desc: 'Teleport forward', cd: 420 },
+    { name: 'OVERCHARGE', desc: '2x fire rate 4s', cd: 900 },
+    { name: 'STATIC FIELD', desc: 'Stun nearby 2s', cd: 1080 },
+    { name: 'PHASE SHIFT', desc: 'Invincible 2s', cd: 1200 }
+  ],
+  warden: [
+    { name: 'DEPLOY TURRET', desc: 'Place auto-turret', cd: 1320 },
+    { name: 'SCAN PULSE', desc: '+30% damage 5s', cd: 960 },
+    { name: 'EMP BLAST', desc: 'AoE stun + damage', cd: 840 },
+    { name: 'BARRICADE', desc: 'Place temp wall 8s', cd: 1200 }
+  ],
+  shadow: [
+    { name: 'SMOKE BOMB', desc: 'AoE slow + invuln', cd: 720 },
+    { name: 'BLADE FURY', desc: '360 slash damage', cd: 600 },
+    { name: 'SHADOW CLONE', desc: 'Decoy draws aggro', cd: 1080 },
+    { name: 'EXECUTE', desc: 'Dash to enemy + kill', cd: 840 }
+  ]
+};

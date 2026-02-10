@@ -172,10 +172,16 @@ canvas {
 
 .class-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  max-width: 700px;
+  max-width: 500px;
   padding: 0 20px;
+}
+
+.class-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - 8px);
 }
 
 .class-card {
@@ -562,6 +568,43 @@ canvas {
   0% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-40px); }
 }
+
+/* ===== PAUSE SCREEN ===== */
+#pause-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px);
+}
+
+#pause-screen.active { display: flex; }
+
+.pause-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 3rem;
+  color: var(--toxic);
+  text-shadow: 0 0 30px rgba(57,255,20,0.5);
+  margin-bottom: 20px;
+  letter-spacing: 8px;
+}
+
+.pause-controls {
+  color: var(--bone);
+  opacity: 0.5;
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.8;
+  font-family: 'Rajdhani', sans-serif;
+  letter-spacing: 1px;
+  margin-bottom: 30px;
+}
+
+.pause-controls span { color: var(--toxic); font-weight: 700; }
 
 /* Mobile joystick */
 .joystick-zone {

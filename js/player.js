@@ -39,9 +39,23 @@ function createPlayer(className) {
     lifesteal: 0,
     magnetRange: 80,
     luckMulti: 1,
+    damageReduction: c.damageReduction || 0,
     turretTimer: 0,
+    totemTimer: 0,
     invincible: 0,
     perks: [],
-    kills: 0
+    kills: 0,
+    // Ability system
+    abilities: (function() {
+      var defs = CLASS_ABILITIES[className];
+      var arr = [];
+      for (var ai = 0; ai < defs.length; ai++) {
+        arr.push({ name: defs[ai].name, desc: defs[ai].desc, cd: defs[ai].cd, cdTimer: 0 });
+      }
+      return arr;
+    })(),
+    fortifyTimer: 0,
+    overchargeTimer: 0,
+    scanTimer: 0
   };
 }

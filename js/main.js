@@ -18,10 +18,12 @@ resize();
 window.addEventListener('resize', resize);
 
 // ===== START GAME =====
-function startGame(className) {
+function startGame(className, mode) {
   document.getElementById('class-screen').classList.remove('active');
   document.getElementById('game-hud').classList.add('active');
   document.getElementById('minimap').classList.add('active');
+
+  gameMode = mode || 'endless';
 
   player = createPlayer(className);
   zombies = [];
@@ -29,42 +31,95 @@ function startGame(className) {
   particles = [];
   pickups = [];
   turrets = [];
+  totems = [];
   explosions = [];
   damageNumbers = [];
   bloodSplats = [];
+  telegraphs = [];
+  hazards = [];
+  interactables = [];
+  roomWalls = [];
   wave = 0;
   score = 0;
   kills = 0;
   combo = 0;
   comboTimer = 0;
 
+  // Init hub system
+  roomsCleared = {};
+  hubRoom = false;
+
   gameRunning = true;
-  startWave();
+
+  if (gameMode === 'odyssey') {
+    initHub();
+  } else {
+    // Reset world size for endless mode
+    WORLD_W = 3000;
+    WORLD_H = 3000;
+    player.x = WORLD_W / 2;
+    player.y = WORLD_H / 2;
+    startWave();
+  }
+
   gameLoop();
 }
 
 // ===== GAME OVER =====
 function gameOver() {
   gameRunning = false;
-  document.getElementById('go-wave').textContent = wave;
+  gamePaused = false;
+  document.getElementById('pause-screen').classList.remove('active');
+  if (gameMode === 'odyssey') {
+    if (hubRoom) {
+      document.getElementById('go-wave').textContent = 'HUB (' + Object.keys(roomsCleared).length + '/4)';
+    } else {
+      document.getElementById('go-wave').textContent = ROOMS[currentRoom].name;
+    }
+  } else {
+    document.getElementById('go-wave').textContent = wave;
+  }
   document.getElementById('go-kills').textContent = kills;
   document.getElementById('go-score').textContent = Math.floor(score);
   document.getElementById('go-level').textContent = player.level;
   document.getElementById('gameover-screen').classList.add('active');
 }
 
+// ===== PAUSE =====
+function togglePause() {
+  if (!gameRunning) return;
+  // Don't toggle pause during level-up or gameover screens
+  if (document.getElementById('levelup-screen').classList.contains('active')) return;
+  if (document.getElementById('gameover-screen').classList.contains('active')) return;
+  gamePaused = !gamePaused;
+  var pauseScreen = document.getElementById('pause-screen');
+  if (gamePaused) {
+    pauseScreen.classList.add('active');
+  } else {
+    pauseScreen.classList.remove('active');
+  }
+}
+
 // ===== UPDATE =====
 function update() {
   if (!gameRunning || gamePaused) return;
 
-  // -- Wave management --
-  if (waveCooldown > 0) {
-    waveCooldown--;
-    if (waveCooldown === 0) spawnWaveZombies();
-  }
+  // -- Wave / Room management --
+  if (gameMode === 'odyssey') {
+    updateRoom();
+    updateBoss();
+    updateHazards();
+    updateInteractables();
+    updateTelegraphs();
+  } else {
+    if (waveCooldown > 0) {
+      waveCooldown--;
+      if (waveCooldown === 0) spawnWaveZombies();
+    }
 
-  if (waveCooldown <= 0 && zombiesRemaining <= 0 && zombies.length === 0) {
-    startWave();
+    if (waveCooldown <= 0 && zombiesRemaining <= 0 && zombies.length === 0) {
+      startWave();
+    }
   }
 
   // -- Player movement --
@@ -88,6 +143,11 @@ function update() {
     player.x += mx * player.speed;
     player.y += my * player.speed;
   }
+
+  // Wall collision for player
+  var playerResolved = resolveWallCollisions(player.x, player.y, player.radius);
+  player.x = playerResolved.x;
+  player.y = playerResolved.y;
 
   // Clamp to world
   player.x = Math.max(player.radius, Math.min(WORLD_W - player.radius, player.x));
@@ -146,24 +206,54 @@ function update() {
     }
   }
 
-  // Medic passive
-  if (player.className === 'medic' && gameRunning) {
+  // Mender passive: regen
+  if (player.className === 'mender' && gameRunning) {
     if (Math.random() < 1 / 60) {
       player.hp = Math.min(player.hp + 1, player.maxHp);
     }
   }
 
-  // Engineer turret
-  if (player.className === 'engineer') {
-    player.turretTimer++;
-    if (player.turretTimer >= 1200) { // 20 seconds
-      player.turretTimer = 0;
-      turrets.push({
-        x: player.x, y: player.y,
-        hp: 80, fireRate: 30, fireTimer: 0,
-        life: 600, damage: 8, range: 200
-      });
-      showNotification('TURRET DEPLOYED');
+  // Ability key processing (1-4)
+  var abilityKeys = [keys['1'], keys['2'], keys['3'], keys['4']];
+  for (var ak = 0; ak < 4; ak++) {
+    if (abilityKeys[ak] && !abilityKeysWas[ak]) {
+      executeAbility(ak);
+    }
+    abilityKeysWas[ak] = abilityKeys[ak] || false;
+  }
+
+  // Ability cooldown ticking
+  for (var cd = 0; cd < player.abilities.length; cd++) {
+    if (player.abilities[cd].cdTimer > 0) player.abilities[cd].cdTimer--;
+  }
+
+  // Buff timers
+  if (player.fortifyTimer > 0) player.fortifyTimer--;
+  if (player.overchargeTimer > 0) player.overchargeTimer--;
+  if (player.scanTimer > 0) player.scanTimer--;
+
+  // Shadow clone update
+  if (shadowClone) {
+    shadowClone.life--;
+    // Clone draws aggro: nearby zombies target clone
+    zombies.forEach(function(z) {
+      if (z.dead || z === bossEntity) return;
+      var dClone = Math.hypot(z.x - shadowClone.x, z.y - shadowClone.y);
+      var dPlayer = Math.hypot(z.x - player.x, z.y - player.y);
+      if (dClone < 200 && dClone < dPlayer) {
+        var a = Math.atan2(shadowClone.y - z.y, shadowClone.x - z.x);
+        z.x += Math.cos(a) * z.speed * 0.5;
+        z.y += Math.sin(a) * z.speed * 0.5;
+      }
+    });
+    if (shadowClone.life <= 0) shadowClone = null;
+  }
+
+  // Temporary wall expiry
+  for (var tw = roomWalls.length - 1; tw >= 0; tw--) {
+    if (roomWalls[tw].temporary) {
+      roomWalls[tw].life--;
+      if (roomWalls[tw].life <= 0) roomWalls.splice(tw, 1);
     }
   }
 
@@ -175,6 +265,21 @@ function update() {
 
     if (b.life <= 0) return false;
     if (b.x < 0 || b.x > WORLD_W || b.y < 0 || b.y > WORLD_H) return false;
+
+    // Wall collision for bullets
+    if (bulletHitsWall(b.x, b.y)) {
+      // Spark particles on wall hit
+      for (var sp = 0; sp < 3; sp++) {
+        particles.push({
+          x: b.x, y: b.y,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          life: 8, maxLife: 8,
+          color: '#ffaa44', size: 2
+        });
+      }
+      return false;
+    }
 
     if (b.owner === 'player') {
       for (var zi = 0; zi < zombies.length; zi++) {
@@ -204,6 +309,9 @@ function update() {
   // -- Zombies --
   zombies = zombies.filter(function(z) {
     if (z.dead || z.hp <= 0) return false;
+
+    // Skip movement for boss entity (handled by updateBoss)
+    if (z === bossEntity) return true;
 
     // Burning DOT
     if (z.burning > 0) {
@@ -268,6 +376,11 @@ function update() {
       }
     }
 
+    // Wall collision for zombies
+    var zResolved = resolveWallCollisions(z.x, z.y, z.radius);
+    z.x = zResolved.x;
+    z.y = zResolved.y;
+
     // Clamp
     z.x = Math.max(z.radius, Math.min(WORLD_W - z.radius, z.x));
     z.y = Math.max(z.radius, Math.min(WORLD_H - z.radius, z.y));
@@ -296,6 +409,28 @@ function update() {
         t.fireTimer = t.fireRate;
       }
     }
+    return true;
+  });
+
+  // -- Totems (Mender) --
+  totems = totems.filter(function(t) {
+    t.life--;
+    if (t.life <= 0) return false;
+
+    // Heal player if nearby
+    if (Math.hypot(player.x - t.x, player.y - t.y) < t.healRange) {
+      if (t.life % 30 === 0) {
+        player.hp = Math.min(player.hp + 2, player.maxHp);
+      }
+    }
+
+    // Slow nearby enemies
+    zombies.forEach(function(z) {
+      if (!z.dead && Math.hypot(z.x - t.x, z.y - t.y) < t.slowRange) {
+        z.slowed = Math.max(z.slowed || 0, 30);
+      }
+    });
+
     return true;
   });
 
