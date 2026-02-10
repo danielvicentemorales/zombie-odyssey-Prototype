@@ -2,6 +2,81 @@
 // ZOMBIE COMP ODYSSEY - Rendering Engine
 // ============================================================
 
+var floorPattern = null;
+
+function initFloorPattern() {
+  var tileCanvas = document.createElement('canvas');
+  tileCanvas.width = 120;
+  tileCanvas.height = 120;
+  var tctx = tileCanvas.getContext('2d');
+
+  // Base fill
+  tctx.fillStyle = '#111115';
+  tctx.fillRect(0, 0, 120, 120);
+
+  // 4 subtiles (60x60) with slight color variation
+  var subtileColors = ['#111115', '#121218', '#10101a', '#131316'];
+  for (var ty = 0; ty < 2; ty++) {
+    for (var tx = 0; tx < 2; tx++) {
+      tctx.fillStyle = subtileColors[ty * 2 + tx];
+      tctx.fillRect(tx * 60, ty * 60, 60, 60);
+    }
+  }
+
+  // Tile joint lines (grout between stone slabs)
+  tctx.strokeStyle = 'rgba(8,8,12,0.8)';
+  tctx.lineWidth = 1;
+  // Horizontal joint
+  tctx.beginPath();
+  tctx.moveTo(0, 60);
+  tctx.lineTo(120, 60);
+  tctx.stroke();
+  // Vertical joint
+  tctx.beginPath();
+  tctx.moveTo(60, 0);
+  tctx.lineTo(60, 120);
+  tctx.stroke();
+
+  // Subtle edge highlight on joints
+  tctx.strokeStyle = 'rgba(30,30,40,0.3)';
+  tctx.lineWidth = 1;
+  tctx.beginPath();
+  tctx.moveTo(0, 61);
+  tctx.lineTo(120, 61);
+  tctx.stroke();
+  tctx.beginPath();
+  tctx.moveTo(61, 0);
+  tctx.lineTo(61, 120);
+  tctx.stroke();
+
+  // Micro-cracks on subtile 0 (top-left)
+  tctx.strokeStyle = 'rgba(40,40,50,0.3)';
+  tctx.lineWidth = 0.5;
+  tctx.beginPath();
+  tctx.moveTo(12, 18);
+  tctx.lineTo(22, 25);
+  tctx.lineTo(28, 22);
+  tctx.stroke();
+
+  // Micro-crack on subtile 3 (bottom-right)
+  tctx.beginPath();
+  tctx.moveTo(80, 85);
+  tctx.lineTo(95, 92);
+  tctx.lineTo(100, 88);
+  tctx.stroke();
+
+  // Tiny speckle noise for texture
+  for (var i = 0; i < 30; i++) {
+    var sx = Math.random() * 120;
+    var sy = Math.random() * 120;
+    var brightness = Math.floor(Math.random() * 12 + 14);
+    tctx.fillStyle = 'rgba(' + brightness + ',' + brightness + ',' + (brightness + 4) + ',0.4)';
+    tctx.fillRect(sx, sy, 1, 1);
+  }
+
+  floorPattern = ctx.createPattern(tileCanvas, 'repeat');
+}
+
 function render() {
   ctx.save();
 
@@ -11,9 +86,14 @@ function render() {
   ctx.scale(cameraZoom, cameraZoom);
   ctx.translate(-camera.x + shakeX, -camera.y + shakeY);
 
-  // Background
-  ctx.fillStyle = '#111115';
-  ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+  // Background (textured floor tiles)
+  if (floorPattern) {
+    ctx.fillStyle = floorPattern;
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+  } else {
+    ctx.fillStyle = '#111115';
+    ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+  }
 
   // Grid
   ctx.strokeStyle = 'rgba(57,255,20,0.04)';
@@ -26,6 +106,11 @@ function render() {
   }
   for (var gy = startY; gy < camera.y + canvas.height + gridSize; gy += gridSize) {
     ctx.beginPath(); ctx.moveTo(camera.x, gy); ctx.lineTo(camera.x + canvas.width, gy); ctx.stroke();
+  }
+
+  // Scenery decorations (cracks, stains, debris)
+  if (sceneryDecor.length > 0) {
+    renderScenery();
   }
 
   // World border
@@ -326,6 +411,16 @@ function render() {
     }
   });
 
+  // Afterimages (rendered behind player)
+  afterimages.forEach(function(a) {
+    ctx.globalAlpha = a.alpha;
+    ctx.fillStyle = a.color;
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.radius * (a.life / a.maxLife), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
   // Player
   if (player) {
     // Shadow
@@ -369,6 +464,21 @@ function render() {
     }
   }
 
+  // Bullet trails (rendered behind bullets for depth)
+  bulletTrails.forEach(function(t) {
+    ctx.globalAlpha = t.alpha;
+    if (t.glow) {
+      ctx.shadowColor = t.color;
+      ctx.shadowBlur = 6;
+    }
+    ctx.fillStyle = t.color;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  });
+
   // Bullets
   bullets.forEach(function(b) {
     if (b.isSlash) {
@@ -396,18 +506,43 @@ function render() {
       ctx.arc(b.x, b.y, 4 + Math.random() * 3, 0, Math.PI * 2);
       ctx.fill();
     } else if (b.isToxic) {
-      ctx.fillStyle = '#44ff44';
-      ctx.shadowColor = '#44ff44';
+      // Boss toxic bullets: 6px with pulse, white core, glow 12
+      var toxPulse = 1 + Math.sin(Date.now() * 0.01 + b.x) * 0.15;
+      ctx.fillStyle = b.trailColor || '#44ff44';
+      ctx.shadowColor = b.trailColor || '#44ff44';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 6 * toxPulse, 0, Math.PI * 2);
+      ctx.fill();
+      // White core
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (b.isSpitter) {
+      // Spitter bullets: 5px with light core, glow 8
+      ctx.fillStyle = b.trailColor || '#66ff66';
+      ctx.shadowColor = b.trailColor || '#66ff66';
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
       ctx.fill();
+      // Light core
+      ctx.fillStyle = 'rgba(200,255,200,0.6)';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 2, 0, Math.PI * 2);
+      ctx.fill();
       ctx.shadowBlur = 0;
     } else if (b.owner === 'zombie') {
+      // Generic zombie bullets: 5px green, glow 5
       ctx.fillStyle = '#44ff44';
+      ctx.shadowColor = '#44ff44';
+      ctx.shadowBlur = 5;
       ctx.beginPath();
-      ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
     } else {
       ctx.fillStyle = '#ffdd44';
       ctx.shadowColor = '#ffdd44';
@@ -481,6 +616,40 @@ function render() {
 
   ctx.restore();
 
+  // Screen pulse on dodge
+  if (dodgeFeedbackTimer > 0) {
+    var pulseAlpha = (dodgeFeedbackTimer / 15) * dodgeFeedbackIntensity * 0.15;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // White flash with radial vignette
+    var vigGrad = ctx.createRadialGradient(
+      canvas.width / 2, canvas.height / 2, canvas.width * 0.2,
+      canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+    );
+    vigGrad.addColorStop(0, 'rgba(136,221,255,' + (pulseAlpha * 0.5) + ')');
+    vigGrad.addColorStop(1, 'rgba(255,255,255,' + pulseAlpha + ')');
+    ctx.fillStyle = vigGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  // Dodge combo HUD
+  if (bulletsDodgedCombo >= 2 && dodgeComboTimer > 0) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var comboAlpha = Math.min(1, dodgeComboTimer / 60);
+    ctx.fillStyle = 'rgba(136,221,255,' + comboAlpha + ')';
+    ctx.shadowColor = '#88ddff';
+    ctx.shadowBlur = 12;
+    ctx.font = "bold 22px 'Orbitron', monospace";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Position below the kill combo display area
+    ctx.fillText('DODGE x' + bulletsDodgedCombo, canvas.width / 2, 140);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
   // Screen-space UI elements
   if (gameMode === 'odyssey') {
     renderBossHealthBar();
@@ -489,6 +658,7 @@ function render() {
   }
 
   renderAbilityHUD();
+  renderPerkHUD();
   renderMinimap();
 }
 
@@ -502,13 +672,78 @@ function renderRoomWalls() {
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(w.x, w.y, w.w, w.h);
 
-    // Green border
-    ctx.strokeStyle = 'rgba(57,255,20,0.3)';
+    // Inner shadow edges (4px dark gradient on each border)
+    var sh = 4;
+    // Top shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(w.x, w.y, w.w, sh);
+    // Bottom shadow
+    ctx.fillRect(w.x, w.y + w.h - sh, w.w, sh);
+    // Left shadow
+    ctx.fillRect(w.x, w.y, sh, w.h);
+    // Right shadow
+    ctx.fillRect(w.x + w.w - sh, w.y, sh, w.h);
+
+    // Panel lines (horizontal every ~22px, vertical every ~22px)
+    ctx.strokeStyle = 'rgba(10,10,20,0.3)';
+    ctx.lineWidth = 1;
+    if (w.h > 30) {
+      for (var py = w.y + 22; py < w.y + w.h - 4; py += 22) {
+        ctx.beginPath();
+        ctx.moveTo(w.x + 4, py);
+        ctx.lineTo(w.x + w.w - 4, py);
+        ctx.stroke();
+      }
+    }
+    if (w.w > 30) {
+      for (var px = w.x + 22; px < w.x + w.w - 4; px += 22) {
+        ctx.beginPath();
+        ctx.moveTo(px, w.y + 4);
+        ctx.lineTo(px, w.y + w.h - 4);
+        ctx.stroke();
+      }
+    }
+
+    // Panel line highlight (offset by 1px for emboss effect)
+    ctx.strokeStyle = 'rgba(30,30,50,0.15)';
+    if (w.h > 30) {
+      for (var py2 = w.y + 23; py2 < w.y + w.h - 4; py2 += 22) {
+        ctx.beginPath();
+        ctx.moveTo(w.x + 4, py2);
+        ctx.lineTo(w.x + w.w - 4, py2);
+        ctx.stroke();
+      }
+    }
+
+    // Damage marks (1-2 per wall, deterministic position based on wall coords)
+    var seed1 = (w.x * 7 + w.y * 13) % 100;
+    var seed2 = (w.x * 17 + w.y * 3) % 100;
+    if (w.w > 20 && w.h > 20) {
+      ctx.fillStyle = 'rgba(8,8,14,0.3)';
+      var dmgX1 = w.x + 6 + (seed1 / 100) * (w.w - 12);
+      var dmgY1 = w.y + 6 + (seed2 / 100) * (w.h - 12);
+      var dmgR1 = 3 + (seed1 % 5);
+      ctx.beginPath();
+      ctx.arc(dmgX1, dmgY1, dmgR1, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (w.w > 40 || w.h > 40) {
+        var dmgX2 = w.x + 6 + (seed2 / 100) * (w.w - 12);
+        var dmgY2 = w.y + 6 + (seed1 / 100) * (w.h - 12);
+        var dmgR2 = 2 + (seed2 % 4);
+        ctx.beginPath();
+        ctx.arc(dmgX2, dmgY2, dmgR2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Border (toned down green)
+    ctx.strokeStyle = 'rgba(57,255,20,0.15)';
     ctx.lineWidth = 2;
     ctx.strokeRect(w.x, w.y, w.w, w.h);
 
-    // Inner highlight
-    ctx.fillStyle = 'rgba(57,255,20,0.03)';
+    // Subtle inner highlight
+    ctx.fillStyle = 'rgba(57,255,20,0.02)';
     ctx.fillRect(w.x + 2, w.y + 2, w.w - 4, w.h - 4);
   }
 }
@@ -677,6 +912,47 @@ function renderHazards() {
           color: '#8b0000', size: 3
         });
       }
+    } else if (h.isShadowTile) {
+      // Shadow tile - dark golden corrupted floor tile (Akkha ToA style)
+      var stPulse = 0.5 + Math.sin(Date.now() * 0.004 + h.x * 0.1 + h.y * 0.1) * 0.15;
+      var stAlpha = h.life > 60 ? 1 : h.life / 60; // Fade out near end
+      ctx.globalAlpha = stAlpha;
+
+      // Dark golden base fill
+      ctx.fillStyle = 'rgba(100,80,20,' + (0.3 + stPulse * 0.15) + ')';
+      ctx.fillRect(h.x, h.y, h.w, h.h);
+
+      // Inner corruption pattern (diagonal lines)
+      ctx.strokeStyle = 'rgba(160,130,40,' + (0.2 + stPulse * 0.1) + ')';
+      ctx.lineWidth = 1;
+      for (var dl = 0; dl < h.w + h.h; dl += 12) {
+        ctx.beginPath();
+        var dlx1 = h.x + Math.min(dl, h.w);
+        var dly1 = h.y + Math.max(0, dl - h.w);
+        var dlx2 = h.x + Math.max(0, dl - h.h);
+        var dly2 = h.y + Math.min(dl, h.h);
+        ctx.moveTo(dlx1, dly1);
+        ctx.lineTo(dlx2, dly2);
+        ctx.stroke();
+      }
+
+      // Grid border with Akkha gold
+      ctx.strokeStyle = 'rgba(196,160,50,' + (0.4 + stPulse * 0.3) + ')';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(h.x, h.y, h.w, h.h);
+
+      // Subtle golden particles
+      if (Math.random() < 0.04) {
+        particles.push({
+          x: h.x + Math.random() * h.w,
+          y: h.y + Math.random() * h.h,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: -0.5 - Math.random() * 1,
+          life: 20, maxLife: 20,
+          color: '#e8c840', size: 2
+        });
+      }
+      ctx.globalAlpha = 1;
     } else {
       // Default rectangular hazard
       ctx.fillStyle = 'rgba(57,255,20,' + (0.08 + pulse * 0.06) + ')';
@@ -895,6 +1171,46 @@ function renderTelegraphs() {
       ctx.stroke();
     }
 
+    if (t.type === 'laser_arc') {
+      // Laser sweep arc telegraph - shows the full sweep zone
+      var arcStart = t.angle - t.sweepAngle / 2;
+      var arcEnd = t.angle + t.sweepAngle / 2;
+
+      // Filled arc showing danger zone
+      ctx.fillStyle = 'rgba(68,136,255,' + (0.04 + progress * 0.1) + ')';
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y);
+      ctx.arc(t.x, t.y, t.length, arcStart, arcEnd);
+      ctx.closePath();
+      ctx.fill();
+
+      // Arc border
+      ctx.strokeStyle = 'rgba(68,136,255,' + (0.2 + progress * 0.5) + ')';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.length, arcStart, arcEnd);
+      ctx.stroke();
+
+      // Sweep direction indicator - animated line showing where it starts
+      var indicatorAngle = arcStart + (arcEnd - arcStart) * progress;
+      ctx.strokeStyle = 'rgba(150,200,255,' + (0.4 + progress * 0.6) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y);
+      ctx.lineTo(t.x + Math.cos(indicatorAngle) * t.length, t.y + Math.sin(indicatorAngle) * t.length);
+      ctx.stroke();
+
+      // Start line (where the sweep begins)
+      ctx.strokeStyle = 'rgba(255,100,100,' + (0.3 + progress * 0.4) + ')';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y);
+      ctx.lineTo(t.x + Math.cos(arcStart) * t.length, t.y + Math.sin(arcStart) * t.length);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
     if (t.type === 'line') {
       // Orange rect with sweep fill
       ctx.save();
@@ -979,6 +1295,30 @@ function renderTelegraphs() {
         ctx.strokeStyle = 'rgba(57,255,20,' + (0.2 + progress * 0.6) + ')';
         ctx.lineWidth = 2;
         ctx.stroke();
+      }
+    }
+
+    if (t.type === 'tiles') {
+      // Shadow tiles telegraph - golden rectangles growing from center
+      var tilePosArr = t.tilePositions || [];
+      var tileSize = t.tileSize || 60;
+      for (var ti = 0; ti < tilePosArr.length; ti++) {
+        var tp = tilePosArr[ti];
+        var growScale = 0.3 + progress * 0.7; // Grow from center
+        var drawW = tileSize * growScale;
+        var drawH = tileSize * growScale;
+        var drawX = tp.x + (tileSize - drawW) / 2;
+        var drawY = tp.y + (tileSize - drawH) / 2;
+
+        // Golden semi-transparent fill
+        ctx.fillStyle = 'rgba(196,160,50,' + (0.05 + progress * 0.15) + ')';
+        ctx.fillRect(drawX, drawY, drawW, drawH);
+
+        // Pulsing border that intensifies
+        var tileBorderPulse = 0.5 + Math.sin(Date.now() * 0.006 + ti) * 0.3;
+        ctx.strokeStyle = 'rgba(232,200,64,' + (0.2 + progress * 0.6 + tileBorderPulse * 0.2) + ')';
+        ctx.lineWidth = 1 + progress * 2;
+        ctx.strokeRect(drawX, drawY, drawW, drawH);
       }
     }
 
@@ -1184,6 +1524,80 @@ function renderAbilityHUD() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       ctx.fillText(cdSec + 's', bx + boxW / 2, by + boxH - 3);
+    }
+  }
+
+  ctx.restore();
+}
+
+// ===== PERK HUD =====
+function renderPerkHUD() {
+  if (!player || !player.perks || player.perks.length === 0) return;
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Count perk occurrences
+  var perkCounts = {};
+  for (var i = 0; i < player.perks.length; i++) {
+    var name = player.perks[i];
+    perkCounts[name] = (perkCounts[name] || 0) + 1;
+  }
+
+  // Build unique perk list with icons from ALL_PERKS
+  var uniquePerks = [];
+  var seen = {};
+  for (var j = 0; j < player.perks.length; j++) {
+    var pName = player.perks[j];
+    if (!seen[pName]) {
+      seen[pName] = true;
+      var perkDef = null;
+      for (var k = 0; k < ALL_PERKS.length; k++) {
+        if (ALL_PERKS[k].name === pName) { perkDef = ALL_PERKS[k]; break; }
+      }
+      uniquePerks.push({ name: pName, icon: perkDef ? perkDef.icon : '?', count: perkCounts[pName] });
+    }
+  }
+
+  // Position: top-right, below minimap (minimap is 140x140 at top-right)
+  var cellSize = 32;
+  var gap = 4;
+  var cols = 5;
+  var startX = canvas.width - 144;
+  var startY = 150;
+
+  for (var p = 0; p < uniquePerks.length; p++) {
+    var col = p % cols;
+    var row = Math.floor(p / cols);
+    var px = startX + col * (cellSize + gap);
+    var py = startY + row * (cellSize + gap);
+
+    // Background
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(px, py, cellSize, cellSize);
+    ctx.strokeStyle = 'rgba(57,255,20,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px, py, cellSize, cellSize);
+
+    // Icon
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(uniquePerks[p].icon, px + cellSize / 2, py + cellSize / 2);
+
+    // Stack badge
+    if (uniquePerks[p].count > 1) {
+      var badgeX = px + cellSize - 2;
+      var badgeY = py + 2;
+      ctx.fillStyle = '#ff4444';
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY + 6, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = "bold 9px 'Orbitron', monospace";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('x' + uniquePerks[p].count, badgeX, badgeY + 6);
     }
   }
 

@@ -13,6 +13,8 @@ function resize() {
   canvas.height = window.innerHeight;
   minimap.width = 140;
   minimap.height = 140;
+  // Reinit floor pattern (canvas resize resets context, invalidating patterns)
+  if (gameRunning) initFloorPattern();
 }
 resize();
 window.addEventListener('resize', resize);
@@ -44,12 +46,23 @@ function startGame(className, mode) {
   kills = 0;
   combo = 0;
   comboTimer = 0;
+  bulletsDodged = 0;
+  bulletsDodgedCombo = 0;
+  dodgeComboTimer = 0;
+  dodgeFeedbackTimer = 0;
+  dodgeFeedbackIntensity = 0;
+  afterimages = [];
+  bulletTrails = [];
 
   // Init hub system
   roomsCleared = {};
   hubRoom = false;
 
   gameRunning = true;
+
+  // Init procedural floor and scenery
+  initFloorPattern();
+  generateScenery(WORLD_W, WORLD_H, 180);
 
   if (gameMode === 'odyssey') {
     initHub();
@@ -138,6 +151,16 @@ function update() {
     player.dashTimer--;
     player.x += player.dashVx;
     player.y += player.dashVy;
+    // Afterimages during dash
+    if (player.dashTimer % 2 === 0) {
+      afterimages.push({
+        x: player.x, y: player.y,
+        radius: player.radius,
+        color: player.color,
+        alpha: 0.5,
+        life: 12, maxLife: 12
+      });
+    }
     if (player.dashTimer <= 0) player.dashing = false;
   } else {
     player.x += mx * player.speed;
@@ -167,13 +190,24 @@ function update() {
     player.dashVy = Math.sin(dashAngle) * spd;
     player.dashCd = player.classData.dashCd * 60;
 
-    // Dash trail
+    // Dash trail particles
     for (var dt = 0; dt < 8; dt++) {
       particles.push({
         x: player.x, y: player.y,
         vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
         life: 15, maxLife: 15,
         color: player.color, size: 3
+      });
+    }
+    // Initial afterimages at dash start
+    for (var ai = 0; ai < 3; ai++) {
+      afterimages.push({
+        x: player.x - player.dashVx * ai * 0.5,
+        y: player.y - player.dashVy * ai * 0.5,
+        radius: player.radius,
+        color: player.color,
+        alpha: 0.4 - ai * 0.1,
+        life: 10, maxLife: 10
       });
     }
   }
@@ -297,9 +331,34 @@ function update() {
     }
 
     if (b.owner === 'zombie') {
-      if (Math.hypot(b.x - player.x, b.y - player.y) < player.radius + 4) {
-        damagePlayer(b.damage);
-        return false;
+      var bDist = Math.hypot(b.x - player.x, b.y - player.y);
+      if (bDist < player.radius + 4) {
+        if (player.invincible > 0 && player.dashing && !b._dodged) {
+          // Dodge detection - bullet passes through during dash
+          b._dodged = true;
+          bulletsDodgedCombo++;
+          dodgeComboTimer = 120;
+          dodgeFeedbackTimer = 15;
+          dodgeFeedbackIntensity = Math.min(1, 0.3 + bulletsDodgedCombo * 0.1);
+          // Afterimage at dodge position
+          afterimages.push({
+            x: player.x, y: player.y,
+            radius: player.radius * 1.2,
+            color: '#88ddff',
+            alpha: 0.7,
+            life: 15, maxLife: 15
+          });
+          // Score bonus
+          score += 25 * bulletsDodgedCombo;
+          // Combo notifications
+          if (bulletsDodgedCombo === 3) showNotification('CLOSE CALL!');
+          else if (bulletsDodgedCombo === 5) showNotification('MATRIX DODGE!');
+          else if (bulletsDodgedCombo >= 8 && bulletsDodgedCombo % 3 === 0) showNotification('UNTOUCHABLE!');
+          // Bullet passes through (don't consume)
+        } else if (player.invincible <= 0) {
+          damagePlayer(b.damage);
+          return false;
+        }
       }
     }
 
@@ -348,18 +407,96 @@ function update() {
       var dist = Math.hypot(player.x - z.x, player.y - z.y);
 
       if (z.ranged && dist < 250 && dist > 100) {
+        // Burst queue processing (fires remaining burst shots)
+        if (z.burstQueue > 0) {
+          z.burstTimer--;
+          if (z.burstTimer <= 0) {
+            z.burstQueue--;
+            z.burstTimer = 8;
+            var burstJitter = (Math.random() - 0.5) * 0.08;
+            bullets.push({
+              x: z.x, y: z.y,
+              vx: Math.cos(z.burstAngle + burstJitter) * 5.5,
+              vy: Math.sin(z.burstAngle + burstJitter) * 5.5,
+              damage: Math.floor(z.damage * 0.4),
+              life: 50,
+              owner: 'zombie',
+              pierce: 0,
+              isSpitter: true,
+              trailColor: '#66ff66'
+            });
+          }
+        }
         z.shootCd--;
-        if (z.shootCd <= 0) {
-          z.shootCd = 90;
-          bullets.push({
-            x: z.x, y: z.y,
-            vx: Math.cos(angle) * 5,
-            vy: Math.sin(angle) * 5,
-            damage: z.damage,
-            life: 60,
-            owner: 'zombie',
-            pierce: 0
-          });
+        if (z.shootCd <= 0 && z.burstQueue <= 0) {
+          var pat = SPITTER_PATTERNS[z.patternType || 'spread'];
+          z.shootCd = pat.cooldown;
+
+          if (z.patternType === 'spread') {
+            for (var si = 0; si < pat.bulletCount; si++) {
+              var spreadOff = (si - (pat.bulletCount - 1) / 2) * (pat.spreadAngle / (pat.bulletCount - 1));
+              bullets.push({
+                x: z.x, y: z.y,
+                vx: Math.cos(angle + spreadOff) * pat.speed,
+                vy: Math.sin(angle + spreadOff) * pat.speed,
+                damage: Math.floor(z.damage * pat.damageMulti),
+                life: pat.life,
+                owner: 'zombie',
+                pierce: 0,
+                isSpitter: true,
+                trailColor: '#66ff66'
+              });
+            }
+          } else if (z.patternType === 'burst') {
+            // Fire first bullet, queue the rest
+            bullets.push({
+              x: z.x, y: z.y,
+              vx: Math.cos(angle) * pat.speed,
+              vy: Math.sin(angle) * pat.speed,
+              damage: Math.floor(z.damage * pat.damageMulti),
+              life: pat.life,
+              owner: 'zombie',
+              pierce: 0,
+              isSpitter: true,
+              trailColor: '#66ff66'
+            });
+            z.burstQueue = pat.bulletCount - 1;
+            z.burstTimer = pat.burstDelay;
+            z.burstAngle = angle;
+          } else if (z.patternType === 'aimed_double') {
+            // Direct bullet
+            bullets.push({
+              x: z.x, y: z.y,
+              vx: Math.cos(angle) * pat.speed,
+              vy: Math.sin(angle) * pat.speed,
+              damage: Math.floor(z.damage * pat.damageMulti),
+              life: pat.life,
+              owner: 'zombie',
+              pierce: 0,
+              isSpitter: true,
+              trailColor: '#66ff66'
+            });
+            // Predictive bullet (leads player movement)
+            var mx = 0, my = 0;
+            if (keys['w'] || keys['arrowup']) my -= 1;
+            if (keys['s'] || keys['arrowdown']) my += 1;
+            if (keys['a'] || keys['arrowleft']) mx -= 1;
+            if (keys['d'] || keys['arrowright']) mx += 1;
+            var predX = player.x + mx * player.speed * dist / pat.speed * pat.leadFactor;
+            var predY = player.y + my * player.speed * dist / pat.speed * pat.leadFactor;
+            var predAngle = Math.atan2(predY - z.y, predX - z.x);
+            bullets.push({
+              x: z.x, y: z.y,
+              vx: Math.cos(predAngle) * pat.speed,
+              vy: Math.sin(predAngle) * pat.speed,
+              damage: Math.floor(z.damage * pat.damageMulti),
+              life: pat.life,
+              owner: 'zombie',
+              pierce: 0,
+              isSpitter: true,
+              trailColor: '#88ff88'
+            });
+          }
         }
       } else {
         z.x += Math.cos(angle) * spd;
@@ -497,6 +634,44 @@ function update() {
     comboTimer--;
     if (comboTimer <= 0) combo = 0;
   }
+
+  // -- Dodge combo timer --
+  if (dodgeComboTimer > 0) {
+    dodgeComboTimer--;
+    if (dodgeComboTimer <= 0) {
+      bulletsDodgedCombo = 0;
+    }
+  }
+  if (dodgeFeedbackTimer > 0) dodgeFeedbackTimer--;
+
+  // -- Afterimages --
+  afterimages = afterimages.filter(function(a) {
+    a.life--;
+    a.alpha *= 0.88;
+    return a.life > 0 && a.alpha > 0.01;
+  });
+
+  // -- Bullet trails --
+  // Generate trails for enemy bullets
+  bullets.forEach(function(b) {
+    if ((b.isToxic || b.isSpitter) && b.owner === 'zombie' && b.life % 2 === 0) {
+      bulletTrails.push({
+        x: b.x, y: b.y,
+        size: b.isToxic ? 4 : 3,
+        color: b.trailColor || '#44ff44',
+        alpha: 0.6,
+        life: 12, maxLife: 12,
+        glow: b.isToxic
+      });
+    }
+  });
+  // Update trails
+  bulletTrails = bulletTrails.filter(function(t) {
+    t.life--;
+    t.alpha = (t.life / t.maxLife) * 0.6;
+    t.size *= 0.92;
+    return t.life > 0;
+  });
 
   // -- Screen shake decay --
   if (screenShake > 0) screenShake *= 0.85;

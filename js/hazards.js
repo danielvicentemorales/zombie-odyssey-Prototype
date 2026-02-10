@@ -13,6 +13,18 @@ function updateHazards() {
       // Bomb explosion on expiry
       if (h.isBomb && h.life <= 0) {
         createExplosion(h.x, h.y, h.explosionRadius || 80, h.damage);
+        // Akkha bombs leave shadow tile residue
+        if (h.leavesResidue) {
+          hazards.push({
+            x: h.x - 25, y: h.y - 25,
+            w: 50, h: 50,
+            damage: 8, color: '#c4a032',
+            vx: 0, vy: 0,
+            isShadowTile: true,
+            life: 240,
+            dmgInterval: 20
+          });
+        }
         hazards.splice(i, 1);
         continue;
       }
@@ -88,8 +100,13 @@ function updateHazards() {
     }
 
     if (touching) {
+      // Push wave effect - pushes player in wave direction
+      if (h.isPushWave && h.pushForce) {
+        player.x += h.pushForce;
+      }
+
       h.dmgTimer = (h.dmgTimer || 0) + 1;
-      var dmgInterval = h.isPool ? 20 : 30; // Pools tick faster
+      var dmgInterval = h.dmgInterval || (h.isPool ? 20 : 30); // Custom or default tick rate
       if (h.dmgTimer % dmgInterval === 0) {
         damagePlayer(h.damage);
         // Particles

@@ -102,7 +102,7 @@ function damageZombie(zombie, dmg, bullet) {
   if (zombie === bossEntity && bossEntity && bossEntity.invulnTimer > 0) return false;
 
   var scanBonus = player.scanTimer > 0 ? 1.3 : 1;
-  var crit = Math.random() < 0.15;
+  var crit = Math.random() < player.critChance;
   var finalDmg = crit ? Math.floor(dmg * 2 * scanBonus) : Math.floor(dmg * scanBonus);
   zombie.hp -= finalDmg;
 

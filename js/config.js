@@ -9,7 +9,7 @@ var WORLD_H = 3000;
 var CLASSES = {
   bulwark: {
     hp: 180, speed: 2.2, dashCd: 3, dashDist: 100,
-    weapon: { name: 'SHOTGUN', damage: 10, fireRate: 500, spread: 0.22, mag: 6, reload: 2.2, auto: false, bulletSpeed: 14, pellets: 5 },
+    weapon: { name: 'SHOTGUN', damage: 10, fireRate: 160, spread: 0.22, mag: 8, reload: 2.2, auto: true, bulletSpeed: 14, pellets: 5 },
     color: '#cc4444', passive: 'Damage reduction: -25%',
     damageReduction: 0.25
   },
@@ -38,11 +38,18 @@ var CLASSES = {
 // ===== ZOMBIE TYPES =====
 var ZOMBIE_TYPES = {
   walker:   { hp: 30,  speed: 1,   damage: 8,  radius: 12, color: '#556b2f', xp: 10,  score: 50 },
-  runner:   { hp: 20,  speed: 2.5, damage: 6,  radius: 10, color: '#8b4513', xp: 15,  score: 75 },
+  runner:   { hp: 18,  speed: 2.0, damage: 6,  radius: 10, color: '#8b4513', xp: 15,  score: 75 },
   tank:     { hp: 120, speed: 0.6, damage: 20, radius: 20, color: '#4a0e0e', xp: 30,  score: 150 },
   spitter:  { hp: 25,  speed: 1.2, damage: 5,  radius: 11, color: '#2e8b57', xp: 20,  score: 100, ranged: true },
   exploder: { hp: 40,  speed: 1.8, damage: 30, radius: 14, color: '#8b0000', xp: 25,  score: 120, explodes: true },
   boss:     { hp: 500, speed: 0.8, damage: 35, radius: 30, color: '#1a001a', xp: 100, score: 500, boss: true }
+};
+
+// ===== SPITTER PATTERNS =====
+var SPITTER_PATTERNS = {
+  spread:       { bulletCount: 3, spreadAngle: 0.4, speed: 4.5, damageMulti: 0.5, cooldown: 100, life: 55 },
+  burst:        { bulletCount: 3, burstDelay: 8, speed: 5.5, jitter: 0.08, damageMulti: 0.4, cooldown: 130, life: 50 },
+  aimed_double: { bulletCount: 2, speed: 5, leadFactor: 0.3, damageMulti: 0.6, cooldown: 110, life: 55 }
 };
 
 // ===== PERKS =====
@@ -52,7 +59,7 @@ var ALL_PERKS = [
   { icon: '⚔️', name: 'DAMAGE+',        desc: '+20% Damage',                   apply: function(p) { p.damageMulti *= 1.2; }},
   { icon: '🔫', name: 'RAPID FIRE',     desc: '+15% Fire Rate',                apply: function(p) { p.fireRateMulti *= 0.85; }},
   { icon: '💨', name: 'VELOCITY',       desc: '+15% Move Speed',               apply: function(p) { p.speed *= 1.15; }},
-  { icon: '🎯', name: 'PRECISION',      desc: '-40% Spread',                   apply: function(p) { p.spreadMulti *= 0.6; }},
+  { icon: '🎯', name: 'DEAD EYE',       desc: '+15% Crit Chance',              apply: function(p) { p.critChance = (p.critChance || 0.15) + 0.15; }},
   { icon: '💀', name: 'PIERCING',       desc: 'Bullets pierce 1 extra',        apply: function(p) { p.pierce += 1; }},
   { icon: '🔥', name: 'INCENDIARY',     desc: 'Bullets ignite enemies',        apply: function(p) { p.incendiary = true; }},
   { icon: '❄️', name: 'CRYO',           desc: 'Bullets slow enemies 30%',      apply: function(p) { p.cryo = true; }},

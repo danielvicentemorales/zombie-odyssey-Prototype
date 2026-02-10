@@ -39,6 +39,7 @@ function createPlayer(className) {
     lifesteal: 0,
     magnetRange: 80,
     luckMulti: 1,
+    critChance: 0.15,
     damageReduction: c.damageReduction || 0,
     turretTimer: 0,
     totemTimer: 0,

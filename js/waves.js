@@ -56,13 +56,13 @@ function spawnZombie(forceType) {
   var base = ZOMBIE_TYPES[type];
   var waveScale = 1 + (wave - 1) * 0.12;
 
-  zombies.push({
+  var zombie = {
     x: Math.max(20, Math.min(WORLD_W - 20, x)),
     y: Math.max(20, Math.min(WORLD_H - 20, y)),
     vx: 0, vy: 0,
     hp: Math.floor(base.hp * waveScale),
     maxHp: Math.floor(base.hp * waveScale),
-    speed: base.speed + (wave - 1) * 0.03,
+    speed: base.speed + (wave - 1) * 0.02,
     damage: Math.floor(base.damage * (1 + (wave - 1) * 0.08)),
     radius: base.radius,
     color: base.color,
@@ -79,5 +79,15 @@ function spawnZombie(forceType) {
     shootCd: 0,
     knockback: 0,
     kbx: 0, kby: 0
-  });
+  };
+
+  if (type === 'spitter') {
+    var patterns = ['spread', 'burst', 'aimed_double'];
+    zombie.patternType = patterns[Math.floor(Math.random() * patterns.length)];
+    zombie.burstQueue = 0;
+    zombie.burstTimer = 0;
+    zombie.burstAngle = 0;
+  }
+
+  zombies.push(zombie);
 }

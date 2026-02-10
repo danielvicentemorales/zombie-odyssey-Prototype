@@ -10,8 +10,8 @@ var BOSS_DEFS = {
     color: '#6b3a1f',
     speed: 0.7,
     phases: [
-      { hpPercent: 1.0, speed: 0.7, attacks: ['ground_slam', 'boulder_toss'] },
-      { hpPercent: 0.4, speed: 1.0, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'] }
+      { hpPercent: 1.0, speed: 0.7, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'] },
+      { hpPercent: 0.4, speed: 1.0, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'], cdMult: 0.75 }
     ],
     attacks: {
       ground_slam: {
@@ -56,8 +56,8 @@ var BOSS_DEFS = {
     color: '#4a0e4e',
     speed: 0.6,
     phases: [
-      { hpPercent: 1.0, speed: 0.6, attacks: ['toxic_burst', 'spawn_swarm'] },
-      { hpPercent: 0.45, speed: 0.9, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'] }
+      { hpPercent: 1.0, speed: 0.6, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'] },
+      { hpPercent: 0.45, speed: 0.9, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'], cdMult: 0.75 }
     ],
     attacks: {
       toxic_burst: {
@@ -99,9 +99,9 @@ var BOSS_DEFS = {
     color: '#2d5016',
     speed: 0.6,
     phases: [
-      { hpPercent: 1.0, speed: 0.6, attacks: ['blood_wave', 'acid_pool'] },
-      { hpPercent: 0.6, speed: 0.9, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'] },
-      { hpPercent: 0.25, speed: 1.2, attacks: ['blood_wave', 'acid_pool', 'boulder_roll', 'enraged_roar'] }
+      { hpPercent: 1.0, speed: 0.6, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'] },
+      { hpPercent: 0.6, speed: 0.9, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'], cdMult: 0.8 },
+      { hpPercent: 0.25, speed: 1.2, attacks: ['blood_wave', 'acid_pool', 'boulder_roll', 'enraged_roar'], cdMult: 0.65 }
     ],
     attacks: {
       blood_wave: {
@@ -151,10 +151,11 @@ var BOSS_DEFS = {
     hp: 2000,
     radius: 42,
     color: '#c4a032',
-    speed: 0.8,
+    speed: 0.7,
+    attackDelay: 100, // 1.67s between attacks (breathing room)
     phases: [
-      { hpPercent: 1.0, speed: 0.8, attacks: ['shadow_orbs', 'detonate'] },
-      { hpPercent: 0.5, speed: 1.1, attacks: ['shadow_orbs', 'detonate', 'mirror_dash'] }
+      { hpPercent: 1.0, speed: 0.7, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate'] },
+      { hpPercent: 0.5, speed: 1.1, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate', 'mirror_dash'], tileCount: 7, tileDuration: 420 }
     ],
     attacks: {
       shadow_orbs: {
@@ -163,7 +164,18 @@ var BOSS_DEFS = {
         windupTime: 40,
         damage: 12,
         projectileCount: 8,
-        cooldown: 160,
+        cooldown: 200,
+        range: 400
+      },
+      shadow_tiles: {
+        name: 'SHADOW TILES',
+        type: 'tiles',
+        windupTime: 45,
+        damage: 8,
+        tileCount: 5,
+        tileSize: 60,
+        tileDuration: 300,
+        cooldown: 240,
         range: 9999
       },
       detonate: {
@@ -172,10 +184,11 @@ var BOSS_DEFS = {
         windupTime: 55,
         radius: 200,
         damage: 25,
-        bombCount: 3,
+        bombCount: 2,
         bombRadius: 40,
-        cooldown: 220,
-        range: 9999
+        bombFuse: 120,
+        cooldown: 280,
+        range: 400
       },
       mirror_dash: {
         name: 'MIRROR DASH',
@@ -185,8 +198,8 @@ var BOSS_DEFS = {
         speed: 14,
         width: 50,
         length: 400,
-        cooldown: 180,
-        range: 9999
+        cooldown: 200,
+        range: 500
       }
     }
   },
@@ -198,19 +211,19 @@ var BOSS_DEFS = {
     color: '#2a4a6b',
     speed: 0.5,
     phases: [
-      { hpPercent: 1.0, speed: 0.5, attacks: ['laser_sweep', 'summon_guards'] },
-      { hpPercent: 0.45, speed: 0.8, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'] }
+      { hpPercent: 1.0, speed: 0.5, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'] },
+      { hpPercent: 0.45, speed: 0.8, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'], cdMult: 0.75 }
     ],
     attacks: {
       laser_sweep: {
         name: 'LASER SWEEP',
         type: 'line',
-        windupTime: 45,
-        damage: 15,
+        windupTime: 55,
+        damage: 18,
         width: 30,
-        length: 600,
-        sweepAngle: Math.PI * 0.6,
-        sweepTime: 60,
+        length: 500,
+        sweepAngle: Math.PI * 0.5,
+        sweepTime: 80,
         cooldown: 180,
         range: 9999
       },
@@ -356,7 +369,7 @@ function updateBoss() {
 
       // Pick next attack
       bossEntity.attackTimer++;
-      if (bossEntity.attackTimer > 60) { // At least 1s between attacks
+      if (bossEntity.attackTimer > (def.attackDelay || 60)) { // Configurable delay between attacks
         var chosen = chooseNextBossAttack();
         if (chosen) {
           bossEntity.currentAttack = chosen;
@@ -472,7 +485,8 @@ function createTelegraph(attackName) {
 
     case 'blood_wave':
       telegraph.type = 'wave';
-      telegraph.x = bossEntity.x;
+      // Telegraph at a random horizontal edge (left or right wall)
+      telegraph.x = Math.random() < 0.5 ? 0 : WORLD_W - 40;
       telegraph.y = 0;
       telegraph.width = 40;
       telegraph.height = WORLD_H;
@@ -550,6 +564,42 @@ function createTelegraph(attackName) {
       telegraph.subtype = 'pulse';
       break;
 
+    case 'shadow_tiles':
+      telegraph.type = 'tiles';
+      telegraph.x = bossEntity.x;
+      telegraph.y = bossEntity.y;
+      // Pre-calculate tile positions and store on boss entity
+      var stPhase = def.phases[bossEntity.currentPhase];
+      var stCount = (stPhase.tileCount || atkDef.tileCount);
+      var stSize = atkDef.tileSize;
+      var stPositions = [];
+      // 2 tiles near the player
+      for (var sti = 0; sti < 2; sti++) {
+        var stpx = player.x + (Math.random() - 0.5) * 120;
+        var stpy = player.y + (Math.random() - 0.5) * 120;
+        // Grid-snap to 60px for ToA feel
+        stpx = Math.floor(stpx / stSize) * stSize;
+        stpy = Math.floor(stpy / stSize) * stSize;
+        stpx = Math.max(0, Math.min(WORLD_W - stSize, stpx));
+        stpy = Math.max(0, Math.min(WORLD_H - stSize, stpy));
+        stPositions.push({ x: stpx, y: stpy });
+      }
+      // Remaining tiles along the path between player and boss
+      for (var stj = 0; stj < stCount - 2; stj++) {
+        var stT = (stj + 1) / (stCount - 1);
+        var stlx = bossEntity.x + (player.x - bossEntity.x) * stT + (Math.random() - 0.5) * 100;
+        var stly = bossEntity.y + (player.y - bossEntity.y) * stT + (Math.random() - 0.5) * 100;
+        stlx = Math.floor(stlx / stSize) * stSize;
+        stly = Math.floor(stly / stSize) * stSize;
+        stlx = Math.max(0, Math.min(WORLD_W - stSize, stlx));
+        stly = Math.max(0, Math.min(WORLD_H - stSize, stly));
+        stPositions.push({ x: stlx, y: stly });
+      }
+      telegraph.tilePositions = stPositions;
+      telegraph.tileSize = stSize;
+      bossEntity.pendingTiles = stPositions;
+      break;
+
     case 'detonate':
       telegraph.x = player.x;
       telegraph.y = player.y;
@@ -568,9 +618,11 @@ function createTelegraph(attackName) {
     // Overseer attacks
     case 'laser_sweep':
       var lsAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
+      telegraph.type = 'laser_arc';
       telegraph.x = bossEntity.x;
       telegraph.y = bossEntity.y;
       telegraph.angle = lsAngle;
+      telegraph.sweepAngle = atkDef.sweepAngle;
       telegraph.width = atkDef.width;
       telegraph.length = atkDef.length;
       break;
@@ -598,8 +650,9 @@ function executeBossAttack() {
   var atkName = bossEntity.currentAttack;
   var atkDef = def.attacks[atkName];
 
-  // Set cooldown
-  bossEntity.attackCooldowns[atkName] = atkDef.cooldown;
+  // Set cooldown (phase cdMult reduces cooldowns in later phases)
+  var cdMult = def.phases[bossEntity.currentPhase].cdMult || 1;
+  bossEntity.attackCooldowns[atkName] = Math.floor(atkDef.cooldown * cdMult);
 
   // Clear telegraphs
   telegraphs = [];
@@ -668,8 +721,10 @@ function executeBossAttack() {
       break;
 
     case 'blood_wave':
-      // Vertical walls sweep left-to-right (or right-to-left) with 2 gaps
-      var waveX = bossEntity.x;
+      // Vertical walls sweep from horizontal stage edges (left or right wall)
+      var fromLeft = Math.random() < 0.5;
+      var waveX = fromLeft ? 0 : WORLD_W;
+      var waveDir = fromLeft ? 4 : -4;
       var gapHeight = 110;
       var numSegments = 5;
       var gapPositions = [];
@@ -681,7 +736,6 @@ function executeBossAttack() {
 
       // Build vertical wave segments with gaps along Y axis
       var curY = 0;
-      var waveDir = waveX < WORLD_W / 2 ? 4 : -4;
       for (var g = 0; g <= gapPositions.length; g++) {
         var gapY = g < gapPositions.length ? gapPositions[g] * (WORLD_H / (numSegments + 1)) : WORLD_H;
         if (gapY - curY > 5) {
@@ -689,7 +743,9 @@ function executeBossAttack() {
             x: waveX - 20, y: curY, w: 40, h: gapY - curY,
             damage: atkDef.damage, color: '#8b0000',
             vx: waveDir, vy: 0,
-            isWave: true, life: 300
+            isWave: true, isPushWave: true,
+            pushForce: waveDir > 0 ? 3 : -3,
+            life: 300
           });
         }
         curY = gapY + gapHeight;
@@ -704,14 +760,18 @@ function executeBossAttack() {
         }
         gaps2.sort(function(a, b) { return a - b; });
         var curY2 = 0;
+        var waveDir2 = -waveDir; // Opposite direction
+        var waveX2 = fromLeft ? WORLD_W : 0;
         for (var g2 = 0; g2 <= gaps2.length; g2++) {
           var gapY2 = g2 < gaps2.length ? gaps2[g2] * (WORLD_H / (numSegments + 1)) : WORLD_H;
           if (gapY2 - curY2 > 5) {
             hazards.push({
-              x: waveX - 20 + waveDir * 40, y: curY2, w: 40, h: gapY2 - curY2,
+              x: waveX2 - 20, y: curY2, w: 40, h: gapY2 - curY2,
               damage: atkDef.damage, color: '#660000',
-              vx: waveDir, vy: 0,
-              isWave: true, life: 300
+              vx: waveDir2, vy: 0,
+              isWave: true, isPushWave: true,
+              pushForce: waveDir2 > 0 ? 3 : -3,
+              life: 300
             });
           }
           curY2 = gapY2 + gapHeight;
@@ -872,6 +932,7 @@ function executeBossAttack() {
     // Kephri attacks
     case 'toxic_burst':
       var tbCount = atkDef.projectileCount;
+      // Outer ring: 12 bullets, damage 6, speed 4
       for (var tbi = 0; tbi < tbCount; tbi++) {
         var tbAngle = (tbi / tbCount) * Math.PI * 2;
         bullets.push({
@@ -879,11 +940,30 @@ function executeBossAttack() {
           y: bossEntity.y + Math.sin(tbAngle) * 30,
           vx: Math.cos(tbAngle) * 4,
           vy: Math.sin(tbAngle) * 4,
-          damage: atkDef.damage,
+          damage: 6,
           life: 90,
           owner: 'zombie',
           pierce: 0,
-          isToxic: true
+          isToxic: true,
+          trailColor: '#44ff44'
+        });
+      }
+      // Inner ring: 8 bullets offset, damage 4, speed 2.5 (slower, creates gaps)
+      var tbInnerCount = 8;
+      var tbOffset = Math.PI / tbCount; // offset so gaps don't align
+      for (var tbi2 = 0; tbi2 < tbInnerCount; tbi2++) {
+        var tbAngle2 = (tbi2 / tbInnerCount) * Math.PI * 2 + tbOffset;
+        bullets.push({
+          x: bossEntity.x + Math.cos(tbAngle2) * 20,
+          y: bossEntity.y + Math.sin(tbAngle2) * 20,
+          vx: Math.cos(tbAngle2) * 2.5,
+          vy: Math.sin(tbAngle2) * 2.5,
+          damage: 4,
+          life: 120,
+          owner: 'zombie',
+          pierce: 0,
+          isToxic: true,
+          trailColor: '#88ff44'
         });
       }
       bossEntity.bossState = 'idle';
@@ -918,8 +998,44 @@ function executeBossAttack() {
       break;
 
     // Akkha attacks
+    case 'shadow_tiles':
+      // Create shadow tile hazards from pre-calculated positions
+      var stDef = atkDef;
+      var stPhaseData = def.phases[bossEntity.currentPhase];
+      var stDuration = stPhaseData.tileDuration || stDef.tileDuration;
+      var stTileSize = stDef.tileSize;
+      var stPending = bossEntity.pendingTiles || [];
+      for (var stk = 0; stk < stPending.length; stk++) {
+        var stp = stPending[stk];
+        hazards.push({
+          x: stp.x, y: stp.y,
+          w: stTileSize, h: stTileSize,
+          damage: stDef.damage, color: '#c4a032',
+          vx: 0, vy: 0,
+          isShadowTile: true,
+          life: stDuration,
+          dmgInterval: 20
+        });
+        // Golden particles on tile creation
+        for (var stp2 = 0; stp2 < 4; stp2++) {
+          particles.push({
+            x: stp.x + stTileSize / 2 + (Math.random() - 0.5) * stTileSize,
+            y: stp.y + stTileSize / 2 + (Math.random() - 0.5) * stTileSize,
+            vx: (Math.random() - 0.5) * 2,
+            vy: -1 - Math.random() * 2,
+            life: 25, maxLife: 25,
+            color: '#e8c840', size: 3
+          });
+        }
+      }
+      bossEntity.pendingTiles = null;
+      bossEntity.bossState = 'idle';
+      bossEntity.attackTimer = 0;
+      break;
+
     case 'shadow_orbs':
       var soCount = atkDef.projectileCount;
+      // Ring: 8 bullets, damage 7, speed 3.5 (pressure ring)
       for (var soi = 0; soi < soCount; soi++) {
         var soAngle = (soi / soCount) * Math.PI * 2;
         bullets.push({
@@ -927,11 +1043,29 @@ function executeBossAttack() {
           y: bossEntity.y + Math.sin(soAngle) * 30,
           vx: Math.cos(soAngle) * 3.5,
           vy: Math.sin(soAngle) * 3.5,
-          damage: atkDef.damage,
+          damage: 7,
           life: 120,
           owner: 'zombie',
           pierce: 0,
-          isToxic: true
+          isToxic: true,
+          trailColor: '#c4a032'
+        });
+      }
+      // Aimed spread: 3 bullets toward player, damage 6, speed 5
+      var soPlayerAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
+      for (var soai = 0; soai < 3; soai++) {
+        var soSpread = (soai - 1) * 0.25;
+        bullets.push({
+          x: bossEntity.x + Math.cos(soPlayerAngle + soSpread) * 30,
+          y: bossEntity.y + Math.sin(soPlayerAngle + soSpread) * 30,
+          vx: Math.cos(soPlayerAngle + soSpread) * 5,
+          vy: Math.sin(soPlayerAngle + soSpread) * 5,
+          damage: 6,
+          life: 80,
+          owner: 'zombie',
+          pierce: 0,
+          isToxic: true,
+          trailColor: '#e8c840'
         });
       }
       bossEntity.bossState = 'idle';
@@ -939,8 +1073,9 @@ function executeBossAttack() {
       break;
 
     case 'detonate':
-      // Place timed bombs near player that explode after delay
+      // Place timed bombs near player that explode after delay, leave shadow residue
       var dtTarget = bossEntity.windupTarget;
+      var dtFuse = atkDef.bombFuse || 90;
       for (var dti = 0; dti < atkDef.bombCount; dti++) {
         var dtA = (dti / atkDef.bombCount) * Math.PI * 2;
         var dtX = dtTarget.x + Math.cos(dtA) * 80;
@@ -954,8 +1089,9 @@ function executeBossAttack() {
           damage: atkDef.damage, color: '#c4a032',
           vx: 0, vy: 0,
           isPool: true, isCircular: true, isBomb: true,
-          life: 90, maxBombLife: 90,
-          explosionRadius: atkDef.radius / 2
+          life: dtFuse, maxBombLife: dtFuse,
+          explosionRadius: atkDef.radius / 2,
+          leavesResidue: true
         });
       }
       bossEntity.bossState = 'idle';
@@ -975,9 +1111,11 @@ function executeBossAttack() {
     // Overseer attacks
     case 'laser_sweep':
       // Sweeping laser beam stored as active attack
-      bossEntity.sweepAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x) - atkDef.sweepAngle / 2;
+      var lsBaseAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
+      bossEntity.sweepAngle = lsBaseAngle - atkDef.sweepAngle / 2;
       bossEntity.sweepEnd = bossEntity.sweepAngle + atkDef.sweepAngle;
       bossEntity.sweepSpeed = atkDef.sweepAngle / atkDef.sweepTime;
+      bossEntity.laserGrace = 8; // grace frames before damage starts
       bossEntity.attackTimer = 0;
       break;
 
@@ -1133,15 +1271,20 @@ function updateBossActiveAttack() {
     case 'laser_sweep':
       // Sweeping laser beam damages player if in path
       bossEntity.sweepAngle += bossEntity.sweepSpeed;
+      if (bossEntity.laserGrace > 0) bossEntity.laserGrace--;
       var laserLen = def.attacks['laser_sweep'].length;
-      var laserW = def.attacks['laser_sweep'].width;
-      // Check if player is in laser path
-      var pAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
-      var pDist = Math.hypot(player.x - bossEntity.x, player.y - bossEntity.y);
-      var angleDiff = Math.abs(pAngle - bossEntity.sweepAngle);
-      if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
-      if (pDist < laserLen && angleDiff < laserW / pDist) {
-        if (bossEntity.attackTimer % 15 === 0) {
+      var laserHalfW = def.attacks['laser_sweep'].width / 2;
+      // Hit detection: perpendicular distance from player to beam line
+      var laserDirX = Math.cos(bossEntity.sweepAngle);
+      var laserDirY = Math.sin(bossEntity.sweepAngle);
+      var toPlayerX = player.x - bossEntity.x;
+      var toPlayerY = player.y - bossEntity.y;
+      // Project player position onto beam direction
+      var projDist = toPlayerX * laserDirX + toPlayerY * laserDirY;
+      // Perpendicular distance from beam center line
+      var perpDist = Math.abs(toPlayerX * (-laserDirY) + toPlayerY * laserDirX);
+      if (projDist > 0 && projDist < laserLen && perpDist < laserHalfW + player.radius) {
+        if (bossEntity.laserGrace <= 0 && bossEntity.attackTimer % 25 === 0) {
           damagePlayer(def.attacks['laser_sweep'].damage);
         }
       }
@@ -1149,8 +1292,8 @@ function updateBossActiveAttack() {
       for (var lp = 0; lp < 3; lp++) {
         var lpR = Math.random() * laserLen;
         particles.push({
-          x: bossEntity.x + Math.cos(bossEntity.sweepAngle) * lpR,
-          y: bossEntity.y + Math.sin(bossEntity.sweepAngle) * lpR,
+          x: bossEntity.x + laserDirX * lpR,
+          y: bossEntity.y + laserDirY * lpR,
           vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
           life: 10, maxLife: 10, color: '#4488ff', size: 3
         });
