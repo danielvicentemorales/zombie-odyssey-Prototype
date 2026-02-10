@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZOMBIE COMP ODYSSEY</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- MENU -->
+<div id="menu-screen">
+  <div class="menu-bg"></div>
+  <div class="menu-title">ZOMBIE ODYSSEY</div>
+  <div class="menu-subtitle">COMPETITIVE SURVIVAL</div>
+  <div class="menu-options">
+    <button class="menu-btn primary" onclick="showClassSelect()">&#9654; PLAY SOLO</button>
+    <button class="menu-btn" onclick="showClassSelect()">&#9876; CO-OP (2P LOCAL)</button>
+    <button class="menu-btn" onclick="showClassSelect()">&#127942; ENDLESS MODE</button>
+  </div>
+  <div class="menu-controls">
+    <span>WASD</span> Move &nbsp;|&nbsp; <span>MOUSE</span> Aim &amp; Shoot &nbsp;|&nbsp; <span>R</span> Reload &nbsp;|&nbsp; <span>SPACE</span> Dash &nbsp;|&nbsp; <span>E</span> Interact &nbsp;|&nbsp; <span>1-3</span> Weapons
+  </div>
+</div>
+
+<!-- CLASS SELECT -->
+<div id="class-screen">
+  <div class="class-title">CHOOSE YOUR SURVIVOR</div>
+  <div class="class-grid">
+    <div class="class-card" onclick="startGame('marine')">
+      <div class="class-icon">&#127894;&#65039;</div>
+      <div class="class-name">MARINE</div>
+      <div class="class-desc">Balanced firepower. Fast reload.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</div>
+    </div>
+    <div class="class-card" onclick="startGame('medic')">
+      <div class="class-icon">&#128137;</div>
+      <div class="class-name">MEDIC</div>
+      <div class="class-desc">Heals over time. AOE support.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; DMG: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617;</div>
+    </div>
+    <div class="class-card" onclick="startGame('berserker')">
+      <div class="class-icon">&#129683;</div>
+      <div class="class-name">BERSERKER</div>
+      <div class="class-desc">Melee beast. Lifesteal on kill.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9608;&#9608; DMG: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; SPD: &#9608;&#9608;&#9617;&#9617;&#9617;&#9617;</div>
+    </div>
+    <div class="class-card" onclick="startGame('scout')">
+      <div class="class-icon">&#9889;</div>
+      <div class="class-name">SCOUT</div>
+      <div class="class-desc">Lightning fast. Double dash.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9608;&#9608;</div>
+    </div>
+    <div class="class-card" onclick="startGame('engineer')">
+      <div class="class-icon">&#128295;</div>
+      <div class="class-name">ENGINEER</div>
+      <div class="class-desc">Deploys turrets. Area denial.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617; SPD: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617;</div>
+    </div>
+    <div class="class-card" onclick="startGame('pyro')">
+      <div class="class-icon">&#128293;</div>
+      <div class="class-name">PYRO</div>
+      <div class="class-desc">Fire damage. Burns spread.</div>
+      <div class="class-stats">HP: &#9608;&#9608;&#9608;&#9617;&#9617;&#9617; DMG: &#9608;&#9608;&#9608;&#9608;&#9608;&#9617; SPD: &#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</div>
+    </div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="game-hud">
+  <div class="hud-left">
+    <div class="hud-label">HEALTH</div>
+    <div class="hud-bar health"><div class="hud-bar-fill" id="health-bar" style="width:100%"></div></div>
+    <div class="hud-label">SHIELD</div>
+    <div class="hud-bar shield"><div class="hud-bar-fill" id="shield-bar" style="width:0%"></div></div>
+    <div class="hud-label">XP</div>
+    <div class="hud-bar xp"><div class="hud-bar-fill" id="xp-bar" style="width:0%"></div></div>
+    <div class="hud-label" id="level-display">LVL 1</div>
+  </div>
+  <div class="hud-center">
+    <div class="hud-wave" id="wave-display">WAVE 1</div>
+    <div class="hud-score" id="score-display">0</div>
+    <div class="hud-kills" id="kills-display">KILLS: 0</div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-weapon" id="weapon-display">PISTOL</div>
+    <div class="hud-ammo"><span class="mag" id="ammo-mag">12</span> / <span id="ammo-reserve">&infin;</span></div>
+  </div>
+</div>
+
+<!-- WAVE BANNER -->
+<div id="wave-banner"></div>
+
+<!-- COMBO -->
+<div id="combo-display"></div>
+
+<!-- SCREEN FLASH -->
+<div id="screen-flash"></div>
+
+<!-- LEVEL UP -->
+<div id="levelup-screen">
+  <div class="levelup-title">LEVEL UP!</div>
+  <div class="levelup-subtitle">CHOOSE A PERK</div>
+  <div class="perk-grid" id="perk-grid"></div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover-screen">
+  <div class="gameover-title">YOU DIED</div>
+  <div class="gameover-stats">
+    <div class="gameover-stat">
+      <div class="gameover-stat-val" id="go-wave">1</div>
+      <div class="gameover-stat-label">WAVE</div>
+    </div>
+    <div class="gameover-stat">
+      <div class="gameover-stat-val" id="go-kills">0</div>
+      <div class="gameover-stat-label">KILLS</div>
+    </div>
+    <div class="gameover-stat">
+      <div class="gameover-stat-val" id="go-score">0</div>
+      <div class="gameover-stat-label">SCORE</div>
+    </div>
+    <div class="gameover-stat">
+      <div class="gameover-stat-val" id="go-level">1</div>
+      <div class="gameover-stat-label">LEVEL</div>
+    </div>
+  </div>
+  <button class="menu-btn primary" onclick="location.reload()">&#8635; TRY AGAIN</button>
+  <button class="menu-btn" style="margin-top:10px" onclick="location.reload()">MENU</button>
+</div>
+
+<!-- MINIMAP -->
+<canvas id="minimap"></canvas>
+
+<!-- MAIN CANVAS -->
+<canvas id="game"></canvas>
+
+<!-- JS: loaded in dependency order -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/input.js"></script>
+<script src="js/player.js"></script>
+<script src="js/pickups.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/perks.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/waves.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
