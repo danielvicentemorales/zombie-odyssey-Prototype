@@ -31,7 +31,7 @@ function generateScenery(worldW, worldH, count) {
       obj.angle = Math.random() * Math.PI * 2;
       obj.segments = 2 + Math.floor(Math.random() * 3);
       obj.alpha = 0.08 + Math.random() * 0.12;
-      obj.color = '#333340';
+      obj.color = '#4A4540';
       // Pre-generate crack segments
       obj.points = [];
       var cx = 0, cy = 0;
@@ -43,7 +43,7 @@ function generateScenery(worldW, worldH, count) {
     } else if (type === 'stain') {
       obj.size = 8 + Math.random() * 20;
       obj.alpha = 0.06 + Math.random() * 0.1;
-      obj.color = Math.random() < 0.6 ? '#3a0000' : '#2a0a00';
+      obj.color = Math.random() < 0.6 ? '#3a1a0a' : '#2a1500';
       obj.blobs = [];
       var blobCount = 1 + Math.floor(Math.random() * 3);
       for (var b = 0; b < blobCount; b++) {
@@ -56,7 +56,7 @@ function generateScenery(worldW, worldH, count) {
     } else if (type === 'debris') {
       obj.size = 1.5 + Math.random() * 3;
       obj.alpha = 0.1 + Math.random() * 0.15;
-      obj.color = Math.random() < 0.5 ? '#222230' : '#2a2a35';
+      obj.color = Math.random() < 0.5 ? '#3A3835' : '#44423E';
       obj.shape = Math.random() < 0.5 ? 'circle' : 'rect';
       obj.angle = Math.random() * Math.PI;
       obj.w = obj.size * (0.6 + Math.random() * 0.8);
@@ -64,7 +64,7 @@ function generateScenery(worldW, worldH, count) {
     } else if (type === 'scorch') {
       obj.size = 12 + Math.random() * 25;
       obj.alpha = 0.05 + Math.random() * 0.08;
-      obj.color = '#0a0a10';
+      obj.color = '#1a1815';
     }
 
     sceneryDecor.push(obj);
@@ -134,7 +134,7 @@ function renderScenery() {
       ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
       ctx.fill();
       // Slightly lighter ring
-      ctx.strokeStyle = '#15151f';
+      ctx.strokeStyle = '#2A2825';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(d.x, d.y, d.size * 0.7, 0, Math.PI * 2);

@@ -53,6 +53,8 @@ function startGame(className, mode) {
   dodgeFeedbackIntensity = 0;
   afterimages = [];
   bulletTrails = [];
+  grenades = [];
+  gKeyWas = false;
 
   // Init hub system
   roomsCleared = {};
@@ -182,10 +184,10 @@ function update() {
   // Dash
   if (keys[' '] && player.dashCd <= 0 && !player.dashing) {
     player.dashing = true;
-    player.dashTimer = 8;
-    player.invincible = 8;
+    player.dashTimer = 10;
+    player.invincible = 10;
     var dashAngle = (mx || my) ? Math.atan2(my, mx) : player.angle;
-    var spd = player.classData.dashDist / 8;
+    var spd = player.classData.dashDist / 10;
     player.dashVx = Math.cos(dashAngle) * spd;
     player.dashVy = Math.sin(dashAngle) * spd;
     player.dashCd = player.classData.dashCd * 60;
@@ -223,6 +225,14 @@ function update() {
     if (player.reloadTimer <= 0) {
       player.ammo = player.weapon.mag;
       player.reloading = false;
+      // Sync back to active slot
+      if (player.activeWeaponSlot === 1) {
+        player.primaryAmmo = player.ammo;
+        player.primaryReloading = false;
+      } else {
+        player.secondaryAmmo = player.ammo;
+        player.secondaryReloading = false;
+      }
     }
   }
 
@@ -247,14 +257,58 @@ function update() {
     }
   }
 
-  // Ability key processing (1-4)
-  var abilityKeys = [keys['1'], keys['2'], keys['3'], keys['4']];
+  // Weapon swap (keys 1 and 2)
+  if (keys['1'] && player.activeWeaponSlot !== 1) {
+    swapWeapon(player, 1);
+  }
+  if (keys['2'] && player.activeWeaponSlot !== 2) {
+    swapWeapon(player, 2);
+  }
+  if (player.weaponSwapTimer > 0) player.weaponSwapTimer--;
+
+  // Inactive weapon background reload ticking
+  if (player.activeWeaponSlot === 1 && player.secondaryReloading) {
+    player.secondaryReloadTimer--;
+    if (player.secondaryReloadTimer <= 0) {
+      player.secondaryAmmo = player.secondaryWeapon.mag;
+      player.secondaryReloading = false;
+    }
+  }
+  if (player.activeWeaponSlot === 2 && player.primaryReloading) {
+    player.primaryReloadTimer--;
+    if (player.primaryReloadTimer <= 0) {
+      player.primaryAmmo = player.primaryWeapon.mag;
+      player.primaryReloading = false;
+    }
+  }
+
+  // Ability key processing (Q, E, F, C)
+  var abilityKeys = [keys['q'], keys['e'], keys['f'], keys['c']];
   for (var ak = 0; ak < 4; ak++) {
     if (abilityKeys[ak] && !abilityKeysWas[ak]) {
+      // E key: give interact priority when near an interactable in odyssey mode
+      if (ak === 1 && gameMode === 'odyssey') {
+        var nearInteractable = false;
+        for (var ii = 0; ii < interactables.length; ii++) {
+          if (interactables[ii].active && interactables[ii].inRange) {
+            nearInteractable = true;
+            break;
+          }
+        }
+        if (nearInteractable) continue; // Skip ability, let interaction system handle it
+      }
       executeAbility(ak);
     }
     abilityKeysWas[ak] = abilityKeys[ak] || false;
   }
+
+  // Grenade input (G key) - Bulwark only
+  var gKeyNow = keys['g'] || false;
+  if (gKeyNow && !gKeyWas) {
+    throwGrenade();
+  }
+  gKeyWas = gKeyNow;
+  if (player.grenadeCooldown > 0) player.grenadeCooldown--;
 
   // Ability cooldown ticking
   for (var cd = 0; cd < player.abilities.length; cd++) {
@@ -297,11 +351,32 @@ function update() {
     b.y += b.vy;
     b.life--;
 
+    // Throwing star slight homing
+    if (b.isThrowingStar && b.owner === 'player') {
+      var nearest = findNearest(b, zombies.filter(function(zz) { return !zz.dead; }), 80);
+      if (nearest) {
+        var targetAngle = Math.atan2(nearest.y - b.y, nearest.x - b.x);
+        var currentAngle = Math.atan2(b.vy, b.vx);
+        var diff = targetAngle - currentAngle;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        var adjust = diff * 0.05;
+        var spd = Math.hypot(b.vx, b.vy);
+        var newAngle = currentAngle + adjust;
+        b.vx = Math.cos(newAngle) * spd;
+        b.vy = Math.sin(newAngle) * spd;
+      }
+    }
+
     if (b.life <= 0) return false;
     if (b.x < 0 || b.x > WORLD_W || b.y < 0 || b.y > WORLD_H) return false;
 
     // Wall collision for bullets
     if (bulletHitsWall(b.x, b.y)) {
+      // Plasma AoE on wall hit
+      if (b.isPlasma && b.owner === 'player') {
+        createExplosion(b.x, b.y, 50, Math.floor(b.damage * 0.5));
+      }
       // Spark particles on wall hit
       for (var sp = 0; sp < 3; sp++) {
         particles.push({
@@ -320,6 +395,18 @@ function update() {
         var z = zombies[zi];
         if (Math.hypot(b.x - z.x, b.y - z.y) < z.radius + 4) {
           damageZombie(z, b.damage, b);
+
+          // Dart poison DOT
+          if (b.isDart) {
+            z.burning = Math.max(z.burning || 0, 180);
+          }
+
+          // Plasma AoE splash on hit
+          if (b.isPlasma) {
+            createExplosion(b.x, b.y, 50, Math.floor(b.damage * 0.4));
+            return false;
+          }
+
           if (b.pierce > 0) {
             b.pierce--;
             b.damage = Math.floor(b.damage * 0.7);
@@ -344,7 +431,7 @@ function update() {
           afterimages.push({
             x: player.x, y: player.y,
             radius: player.radius * 1.2,
-            color: '#88ddff',
+            color: '#C4B48C',
             alpha: 0.7,
             life: 15, maxLife: 15
           });
@@ -508,7 +595,7 @@ function update() {
         z.attackCd--;
         if (z.attackCd <= 0) {
           damagePlayer(z.damage);
-          z.attackCd = 40;
+          z.attackCd = 55;
         }
       }
     }
@@ -537,8 +624,8 @@ function update() {
         var angle = Math.atan2(target.y - t.y, target.x - t.x);
         bullets.push({
           x: t.x, y: t.y,
-          vx: Math.cos(angle) * 10,
-          vy: Math.sin(angle) * 10,
+          vx: Math.cos(angle) * 8,
+          vy: Math.sin(angle) * 8,
           damage: t.damage,
           pierce: 0, life: 30,
           owner: 'player'
@@ -594,7 +681,16 @@ function update() {
         case 'ammo':
           player.ammo = player.weapon.mag;
           player.reloading = false;
+          // Refill both weapon slots
+          player.primaryAmmo = player.primaryWeapon.mag;
+          player.primaryReloading = false;
+          player.secondaryAmmo = player.secondaryWeapon.mag;
+          player.secondaryReloading = false;
           showNotification('AMMO REFILLED');
+          break;
+        case 'grenade':
+          player.grenadeCount = Math.min(player.grenadeCount + 1, player.grenadeMax);
+          showNotification('+1 GRENADE');
           break;
         case 'shield':
           player.shield = Math.min(player.shield + 10, player.maxShield);
@@ -629,6 +725,72 @@ function update() {
     return e.life > 0;
   });
 
+  // -- Grenades --
+  grenades = grenades.filter(function(g) {
+    // Movement with friction
+    g.x += g.vx;
+    g.y += g.vy;
+    g.vx *= 0.97;
+    g.vy *= 0.97;
+
+    // Fake Z-axis arc (gravity)
+    g.z += g.vz;
+    g.vz -= 0.15;
+
+    // Bounce on ground
+    if (g.z <= 0) {
+      g.z = 0;
+      g.vz = Math.abs(g.vz) * 0.4;
+      if (Math.abs(g.vz) < 0.3) g.vz = 0;
+      g.vx *= 0.8;
+      g.vy *= 0.8;
+      g.bounced = true;
+    }
+
+    // Fuse timer
+    g.fuseTimer--;
+
+    // Contact detonation (hits zombie while on ground)
+    var contactHit = false;
+    if (g.bounced && g.z < 3) {
+      for (var zi = 0; zi < zombies.length; zi++) {
+        var zz = zombies[zi];
+        if (zz.dead) continue;
+        if (Math.hypot(g.x - zz.x, g.y - zz.y) < zz.radius + 6) {
+          contactHit = true;
+          break;
+        }
+      }
+    }
+
+    // Detonate
+    if (g.fuseTimer <= 0 || contactHit) {
+      createExplosion(g.x, g.y, g.radius, g.damage);
+      screenShake = Math.max(screenShake, 12);
+      // Extra dramatic particles
+      for (var ep = 0; ep < 15; ep++) {
+        var eAngle = Math.random() * Math.PI * 2;
+        var eSpd = 3 + Math.random() * 5;
+        particles.push({
+          x: g.x, y: g.y,
+          vx: Math.cos(eAngle) * eSpd,
+          vy: Math.sin(eAngle) * eSpd,
+          life: 25 + Math.random() * 25,
+          maxLife: 50,
+          color: Math.random() < 0.3 ? '#4a8a4a' : (Math.random() < 0.5 ? '#ff6600' : '#ffcc00'),
+          size: 2 + Math.random() * 3
+        });
+      }
+      return false;
+    }
+
+    // Clamp to world
+    g.x = Math.max(6, Math.min(WORLD_W - 6, g.x));
+    g.y = Math.max(6, Math.min(WORLD_H - 6, g.y));
+
+    return true;
+  });
+
   // -- Combo --
   if (comboTimer > 0) {
     comboTimer--;
@@ -658,7 +820,7 @@ function update() {
       bulletTrails.push({
         x: b.x, y: b.y,
         size: b.isToxic ? 4 : 3,
-        color: b.trailColor || '#44ff44',
+        color: b.trailColor || '#7A8A5A',
         alpha: 0.6,
         life: 12, maxLife: 12,
         glow: b.isToxic

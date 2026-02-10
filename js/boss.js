@@ -6,18 +6,18 @@ var BOSS_DEFS = {
   baba: {
     name: "BA-BA, THE BRUTE",
     hp: 1500,
-    radius: 45,
+    radius: 38,
     color: '#6b3a1f',
-    speed: 0.7,
+    speed: 0.5,
     phases: [
-      { hpPercent: 1.0, speed: 0.7, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'] },
-      { hpPercent: 0.4, speed: 1.0, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'], cdMult: 0.75 }
+      { hpPercent: 1.0, speed: 0.5, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'] },
+      { hpPercent: 0.4, speed: 0.7, attacks: ['ground_slam', 'boulder_toss', 'falling_rocks'], cdMult: 0.75 }
     ],
     attacks: {
       ground_slam: {
         name: 'GROUND SLAM',
         type: 'circle',
-        windupTime: 50,
+        windupTime: 60,
         radius: 130,
         damage: 25,
         cooldown: 120,
@@ -26,23 +26,23 @@ var BOSS_DEFS = {
       boulder_toss: {
         name: 'BOULDER TOSS',
         type: 'circle',
-        windupTime: 45,
+        windupTime: 55,
         radius: 60,
         damage: 30,
         boulderCount: 3,
         boulderRadius: 25,
-        boulderSpeed: 5,
+        boulderSpeed: 3.5,
         cooldown: 180,
         range: 9999
       },
       falling_rocks: {
         name: 'FALLING ROCKS',
         type: 'boulder',
-        windupTime: 60,
+        windupTime: 70,
         damage: 20,
         rockCount: 6,
         boulderRadius: 22,
-        boulderSpeed: 5,
+        boulderSpeed: 3.5,
         cooldown: 240,
         range: 9999
       }
@@ -52,18 +52,18 @@ var BOSS_DEFS = {
   kephri: {
     name: "KEPHRI, THE PLAGUE",
     hp: 1800,
-    radius: 40,
+    radius: 34,
     color: '#4a0e4e',
-    speed: 0.6,
+    speed: 0.45,
     phases: [
-      { hpPercent: 1.0, speed: 0.6, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'] },
-      { hpPercent: 0.45, speed: 0.9, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'], cdMult: 0.75 }
+      { hpPercent: 1.0, speed: 0.45, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'] },
+      { hpPercent: 0.45, speed: 0.65, attacks: ['toxic_burst', 'spawn_swarm', 'plague_cloud'], cdMult: 0.75 }
     ],
     attacks: {
       toxic_burst: {
         name: 'TOXIC BURST',
         type: 'spiral',
-        windupTime: 35,
+        windupTime: 42,
         damage: 10,
         projectileCount: 12,
         cooldown: 150,
@@ -72,7 +72,7 @@ var BOSS_DEFS = {
       spawn_swarm: {
         name: 'SPAWN SWARM',
         type: 'summon',
-        windupTime: 25,
+        windupTime: 30,
         channelTime: 60,
         summonCount: 5,
         cooldown: 300,
@@ -81,7 +81,7 @@ var BOSS_DEFS = {
       plague_cloud: {
         name: 'PLAGUE CLOUD',
         type: 'circle',
-        windupTime: 50,
+        windupTime: 60,
         radius: 180,
         damage: 8,
         poolDuration: 360,
@@ -95,19 +95,19 @@ var BOSS_DEFS = {
   amalgam: {
     name: 'THE AMALGAM',
     hp: 2500,
-    radius: 50,
+    radius: 42,
     color: '#2d5016',
-    speed: 0.6,
+    speed: 0.45,
     phases: [
-      { hpPercent: 1.0, speed: 0.6, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'] },
-      { hpPercent: 0.6, speed: 0.9, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'], cdMult: 0.8 },
-      { hpPercent: 0.25, speed: 1.2, attacks: ['blood_wave', 'acid_pool', 'boulder_roll', 'enraged_roar'], cdMult: 0.65 }
+      { hpPercent: 1.0, speed: 0.45, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'] },
+      { hpPercent: 0.6, speed: 0.65, attacks: ['blood_wave', 'acid_pool', 'boulder_roll'], cdMult: 0.8 },
+      { hpPercent: 0.25, speed: 0.85, attacks: ['blood_wave', 'acid_pool', 'boulder_roll', 'enraged_roar'], cdMult: 0.65 }
     ],
     attacks: {
       blood_wave: {
         name: 'BLOOD WAVE',
         type: 'wave',
-        windupTime: 50, // ~0.83s
+        windupTime: 60, // ~1s
         damage: 20,
         cooldown: 150, // 2.5s
         range: 9999
@@ -115,7 +115,7 @@ var BOSS_DEFS = {
       acid_pool: {
         name: 'ACID POOL',
         type: 'acid',
-        windupTime: 40,
+        windupTime: 48,
         damage: 6,
         poolCount: 2,
         poolDuration: 360,
@@ -126,18 +126,18 @@ var BOSS_DEFS = {
       boulder_roll: {
         name: 'BOULDER ROLL',
         type: 'boulder',
-        windupTime: 60, // 1s
+        windupTime: 70, // ~1.17s
         damage: 35,
         boulderCount: 4,
         boulderRadius: 30,
-        boulderSpeed: 6,
+        boulderSpeed: 4.2,
         cooldown: 210, // 3.5s
         range: 9999
       },
       enraged_roar: {
         name: 'ENRAGED ROAR',
         type: 'circle',
-        windupTime: 45, // 0.75s
+        windupTime: 55, // ~0.92s
         radius: 250,
         damage: 15,
         summonCount: 4,
@@ -149,19 +149,19 @@ var BOSS_DEFS = {
   akkha: {
     name: "AKKHA, THE WARDEN",
     hp: 2000,
-    radius: 42,
+    radius: 36,
     color: '#c4a032',
-    speed: 0.7,
+    speed: 0.5,
     attackDelay: 100, // 1.67s between attacks (breathing room)
     phases: [
-      { hpPercent: 1.0, speed: 0.7, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate'] },
-      { hpPercent: 0.5, speed: 1.1, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate', 'mirror_dash'], tileCount: 7, tileDuration: 420 }
+      { hpPercent: 1.0, speed: 0.5, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate'] },
+      { hpPercent: 0.5, speed: 0.8, attacks: ['shadow_orbs', 'shadow_tiles', 'detonate', 'mirror_dash'], tileCount: 7, tileDuration: 420 }
     ],
     attacks: {
       shadow_orbs: {
         name: 'SHADOW ORBS',
         type: 'spiral',
-        windupTime: 40,
+        windupTime: 48,
         damage: 12,
         projectileCount: 8,
         cooldown: 200,
@@ -170,7 +170,7 @@ var BOSS_DEFS = {
       shadow_tiles: {
         name: 'SHADOW TILES',
         type: 'tiles',
-        windupTime: 45,
+        windupTime: 55,
         damage: 8,
         tileCount: 5,
         tileSize: 60,
@@ -181,7 +181,7 @@ var BOSS_DEFS = {
       detonate: {
         name: 'DETONATE',
         type: 'circle',
-        windupTime: 55,
+        windupTime: 65,
         radius: 200,
         damage: 25,
         bombCount: 2,
@@ -193,9 +193,9 @@ var BOSS_DEFS = {
       mirror_dash: {
         name: 'MIRROR DASH',
         type: 'line',
-        windupTime: 35,
+        windupTime: 42,
         damage: 20,
-        speed: 14,
+        speed: 10,
         width: 50,
         length: 400,
         cooldown: 200,
@@ -207,18 +207,18 @@ var BOSS_DEFS = {
   overseer: {
     name: "THE OVERSEER",
     hp: 1600,
-    radius: 38,
+    radius: 32,
     color: '#2a4a6b',
-    speed: 0.5,
+    speed: 0.35,
     phases: [
-      { hpPercent: 1.0, speed: 0.5, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'] },
-      { hpPercent: 0.45, speed: 0.8, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'], cdMult: 0.75 }
+      { hpPercent: 1.0, speed: 0.35, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'] },
+      { hpPercent: 0.45, speed: 0.6, attacks: ['laser_sweep', 'summon_guards', 'gravity_well'], cdMult: 0.75 }
     ],
     attacks: {
       laser_sweep: {
         name: 'LASER SWEEP',
         type: 'line',
-        windupTime: 55,
+        windupTime: 65,
         damage: 18,
         width: 30,
         length: 500,
@@ -230,7 +230,7 @@ var BOSS_DEFS = {
       summon_guards: {
         name: 'SUMMON GUARDS',
         type: 'summon',
-        windupTime: 30,
+        windupTime: 36,
         channelTime: 40,
         summonCount: 4,
         cooldown: 280,
@@ -239,7 +239,7 @@ var BOSS_DEFS = {
       gravity_well: {
         name: 'GRAVITY WELL',
         type: 'circle',
-        windupTime: 50,
+        windupTime: 60,
         radius: 160,
         damage: 10,
         pullStrength: 3,
@@ -407,7 +407,7 @@ function updateBoss() {
   if (distToPlayer < player.radius + bossEntity.radius + 2) {
     if (bossEntity.attackCd <= 0) {
       damagePlayer(bossEntity.damage);
-      bossEntity.attackCd = 60;
+      bossEntity.attackCd = 75;
     }
   }
   if (bossEntity.attackCd > 0) bossEntity.attackCd--;
@@ -724,7 +724,7 @@ function executeBossAttack() {
       // Vertical walls sweep from horizontal stage edges (left or right wall)
       var fromLeft = Math.random() < 0.5;
       var waveX = fromLeft ? 0 : WORLD_W;
-      var waveDir = fromLeft ? 4 : -4;
+      var waveDir = fromLeft ? 3 : -3;
       var gapHeight = 110;
       var numSegments = 5;
       var gapPositions = [];
@@ -794,7 +794,7 @@ function executeBossAttack() {
           x: poolX, y: poolY,
           w: atkDef.poolRadius * 2, h: atkDef.poolRadius * 2,
           radius: atkDef.poolRadius,
-          damage: atkDef.damage, color: '#39FF14',
+          damage: atkDef.damage, color: '#8FA85A',
           vx: 0, vy: 0,
           isPool: true, isCircular: true,
           life: atkDef.poolDuration
@@ -932,23 +932,23 @@ function executeBossAttack() {
     // Kephri attacks
     case 'toxic_burst':
       var tbCount = atkDef.projectileCount;
-      // Outer ring: 12 bullets, damage 6, speed 4
+      // Outer ring: 12 bullets, damage 6, speed 2.8
       for (var tbi = 0; tbi < tbCount; tbi++) {
         var tbAngle = (tbi / tbCount) * Math.PI * 2;
         bullets.push({
           x: bossEntity.x + Math.cos(tbAngle) * 30,
           y: bossEntity.y + Math.sin(tbAngle) * 30,
-          vx: Math.cos(tbAngle) * 4,
-          vy: Math.sin(tbAngle) * 4,
+          vx: Math.cos(tbAngle) * 2.8,
+          vy: Math.sin(tbAngle) * 2.8,
           damage: 6,
           life: 90,
           owner: 'zombie',
           pierce: 0,
           isToxic: true,
-          trailColor: '#44ff44'
+          trailColor: '#7A8A5A'
         });
       }
-      // Inner ring: 8 bullets offset, damage 4, speed 2.5 (slower, creates gaps)
+      // Inner ring: 8 bullets offset, damage 4, speed 1.8 (slower, creates gaps)
       var tbInnerCount = 8;
       var tbOffset = Math.PI / tbCount; // offset so gaps don't align
       for (var tbi2 = 0; tbi2 < tbInnerCount; tbi2++) {
@@ -956,8 +956,8 @@ function executeBossAttack() {
         bullets.push({
           x: bossEntity.x + Math.cos(tbAngle2) * 20,
           y: bossEntity.y + Math.sin(tbAngle2) * 20,
-          vx: Math.cos(tbAngle2) * 2.5,
-          vy: Math.sin(tbAngle2) * 2.5,
+          vx: Math.cos(tbAngle2) * 1.8,
+          vy: Math.sin(tbAngle2) * 1.8,
           damage: 4,
           life: 120,
           owner: 'zombie',
@@ -1035,14 +1035,14 @@ function executeBossAttack() {
 
     case 'shadow_orbs':
       var soCount = atkDef.projectileCount;
-      // Ring: 8 bullets, damage 7, speed 3.5 (pressure ring)
+      // Ring: 8 bullets, damage 7, speed 2.5 (pressure ring)
       for (var soi = 0; soi < soCount; soi++) {
         var soAngle = (soi / soCount) * Math.PI * 2;
         bullets.push({
           x: bossEntity.x + Math.cos(soAngle) * 30,
           y: bossEntity.y + Math.sin(soAngle) * 30,
-          vx: Math.cos(soAngle) * 3.5,
-          vy: Math.sin(soAngle) * 3.5,
+          vx: Math.cos(soAngle) * 2.5,
+          vy: Math.sin(soAngle) * 2.5,
           damage: 7,
           life: 120,
           owner: 'zombie',
@@ -1051,15 +1051,15 @@ function executeBossAttack() {
           trailColor: '#c4a032'
         });
       }
-      // Aimed spread: 3 bullets toward player, damage 6, speed 5
+      // Aimed spread: 3 bullets toward player, damage 6, speed 3.5
       var soPlayerAngle = Math.atan2(player.y - bossEntity.y, player.x - bossEntity.x);
       for (var soai = 0; soai < 3; soai++) {
         var soSpread = (soai - 1) * 0.25;
         bullets.push({
           x: bossEntity.x + Math.cos(soPlayerAngle + soSpread) * 30,
           y: bossEntity.y + Math.sin(soPlayerAngle + soSpread) * 30,
-          vx: Math.cos(soPlayerAngle + soSpread) * 5,
-          vy: Math.sin(soPlayerAngle + soSpread) * 5,
+          vx: Math.cos(soPlayerAngle + soSpread) * 3.5,
+          vy: Math.sin(soPlayerAngle + soSpread) * 3.5,
           damage: 6,
           life: 80,
           owner: 'zombie',
@@ -1233,7 +1233,7 @@ function updateBossActiveAttack() {
             vx: -Math.cos(a) * 2,
             vy: -Math.sin(a) * 2,
             life: 15, maxLife: 15,
-            color: '#44ff44', size: 3
+            color: '#7A8A5A', size: 3
           });
         }
       }
@@ -1295,7 +1295,7 @@ function updateBossActiveAttack() {
           x: bossEntity.x + laserDirX * lpR,
           y: bossEntity.y + laserDirY * lpR,
           vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-          life: 10, maxLife: 10, color: '#4488ff', size: 3
+          life: 10, maxLife: 10, color: '#6A8A9A', size: 3
         });
       }
       if (bossEntity.sweepAngle >= bossEntity.sweepEnd) {
@@ -1378,7 +1378,7 @@ function renderBossHealthBar() {
   else if (bossEntity.bossId === 'baba') bossAccent = '#a05a2f';
   else if (bossEntity.bossId === 'kephri') bossAccent = '#8833cc';
   else if (bossEntity.bossId === 'akkha') bossAccent = '#c4a032';
-  else if (bossEntity.bossId === 'overseer') bossAccent = '#4488ff';
+  else if (bossEntity.bossId === 'overseer') bossAccent = '#6A8A9A';
   ctx.strokeStyle = bossEntity.invulnTimer > 0 ? '#ffff00' : bossAccent;
   ctx.lineWidth = 1;
   ctx.strokeRect(barX - 1, barY - 1, barW + 2, barH + 2);

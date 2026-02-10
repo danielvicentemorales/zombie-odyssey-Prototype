@@ -4,7 +4,7 @@
 
 function startWave() {
   wave++;
-  waveCooldown = 180; // 3 second breather
+  waveCooldown = 240; // 4 second breather
   showWaveBanner(wave);
 }
 
@@ -15,8 +15,10 @@ function getWaveTagline() {
 }
 
 function spawnWaveZombies() {
-  var count = Math.floor(5 + wave * 2.5 + wave * wave * 0.15);
+  var count = Math.floor(4 + wave * 1.8 + Math.min(wave * wave * 0.06, 30));
   zombiesRemaining = count;
+
+  var spawnDelay = Math.max(300, 800 - wave * 15);
 
   for (var i = 0; i < count; i++) {
     (function(delay) {
@@ -24,7 +26,7 @@ function spawnWaveZombies() {
         if (!gameRunning) return;
         spawnZombie();
       }, delay);
-    })(i * Math.max(100, 500 - wave * 20));
+    })(i * spawnDelay);
   }
 
   // Boss every 5 waves
@@ -32,7 +34,7 @@ function spawnWaveZombies() {
     setTimeout(function() {
       if (!gameRunning) return;
       spawnZombie('boss');
-    }, 2000);
+    }, 2500);
   }
 }
 

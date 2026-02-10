@@ -73,3 +73,7 @@ var dodgeFeedbackTimer = 0;
 var dodgeFeedbackIntensity = 0;
 var afterimages = [];
 var bulletTrails = [];
+
+// Grenade system
+var grenades = [];
+var gKeyWas = false;

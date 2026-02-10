@@ -117,7 +117,7 @@ function updateHazards() {
             vx: (Math.random() - 0.5) * 3,
             vy: -1 - Math.random() * 2,
             life: 20, maxLife: 20,
-            color: h.color || '#39FF14',
+            color: h.color || '#8FA85A',
             size: 3
           });
         }
@@ -181,7 +181,7 @@ function initPuzzle(puzzleId) {
         type: 'switch',
         id: si,
         color: '#ff4444',
-        activeColor: '#44ff44',
+        activeColor: '#8FA85A',
         activated: false,
         active: true,
         inRange: false,
@@ -193,34 +193,34 @@ function initPuzzle(puzzleId) {
     // Toxic hazards in doorways (static)
     hazards.push({
       x: 500, y: 290, w: 100, h: 50,
-      damage: 5, color: '#39FF14',
+      damage: 5, color: '#8FA85A',
       vx: 0, vy: 0
     });
     hazards.push({
       x: 800, y: 590, w: 100, h: 50,
-      damage: 5, color: '#39FF14',
+      damage: 5, color: '#8FA85A',
       vx: 0, vy: 0
     });
 
     // Moving toxic hazards - patrol paths
     hazards.push({
       x: 100, y: 450, w: 70, h: 70,
-      damage: 8, color: '#44ff00',
+      damage: 8, color: '#7A8A5A',
       vx: 2, vy: 0
     });
     hazards.push({
       x: 900, y: 450, w: 70, h: 70,
-      damage: 8, color: '#44ff00',
+      damage: 8, color: '#7A8A5A',
       vx: -2, vy: 0
     });
     hazards.push({
       x: 700, y: 100, w: 70, h: 70,
-      damage: 8, color: '#44ff00',
+      damage: 8, color: '#7A8A5A',
       vx: 0, vy: 1.5
     });
     hazards.push({
       x: 400, y: 700, w: 70, h: 70,
-      damage: 8, color: '#44ff00',
+      damage: 8, color: '#7A8A5A',
       vx: 1.5, vy: 1
     });
 
@@ -289,7 +289,7 @@ function initExtraction(beaconPos) {
     type: 'beacon',
     active: true,
     inRange: false,
-    color: '#39FF14',
+    color: '#8FA85A',
     channeling: false,
     label: 'EXTRACT'
   });
@@ -327,7 +327,7 @@ function updateExtractionBeacon(beacon) {
         vx: -Math.cos(a) * 1.5,
         vy: -Math.sin(a) * 1.5,
         life: 15, maxLife: 15,
-        color: '#39FF14', size: 2
+        color: '#8FA85A', size: 2
       });
     }
 

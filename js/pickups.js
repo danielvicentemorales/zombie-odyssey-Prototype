@@ -9,6 +9,7 @@ function spawnPickup(x, y, luck) {
   else if (r < 0.5) type = 'ammo';
   else if (r < 0.65) type = 'shield';
   else if (r < 0.75) type = 'xp_orb';
+  else if (r < 0.80 && player && player.className === 'bulwark') type = 'grenade';
   else return;
 
   pickups.push({ x: x, y: y, type: type, life: 600, radius: 8 });
