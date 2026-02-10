@@ -64,3 +64,16 @@ var shadowClone = null;
 
 // Room stage system
 var roomStage = 'pre'; // 'pre' or 'boss'
+
+// Dodge roll feedback system
+var bulletsDodged = 0;
+var bulletsDodgedCombo = 0;
+var dodgeComboTimer = 0;
+var dodgeFeedbackTimer = 0;
+var dodgeFeedbackIntensity = 0;
+var afterimages = [];
+var bulletTrails = [];
+
+// Grenade system
+var grenades = [];
+var gKeyWas = false;

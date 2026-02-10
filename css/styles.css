@@ -1,19 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Creepster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Rajdhani:wght@300;500;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
   --blood: #8B0000;
-  --toxic: #39FF14;
-  --toxic-dim: #1a7a0a;
+  --toxic: #8FA85A;
+  --toxic-dim: #5C6B3A;
   --bone: #E8DCC8;
-  --dark: #0a0a0a;
-  --darker: #050505;
-  --metal: #2a2a3a;
-  --gold: #FFD700;
-  --health-red: #ff2244;
-  --shield-blue: #44aaff;
-  --xp-purple: #aa44ff;
+  --dark: #1a1a18;
+  --darker: #121210;
+  --metal: #3A3A38;
+  --gold: #D4A747;
+  --health-red: #CC3333;
+  --shield-blue: #5A8BA8;
+  --xp-purple: #C4922A;
 }
 
 body {
@@ -48,39 +48,28 @@ canvas {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 80%, rgba(139,0,0,0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(57,255,20,0.08) 0%, transparent 50%),
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(57,255,20,0.02) 2px, rgba(57,255,20,0.02) 4px);
-  animation: scanlines 8s linear infinite;
-}
-
-@keyframes scanlines {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 100px; }
+    radial-gradient(ellipse at 20% 80%, rgba(139,0,0,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(143,168,90,0.06) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(100,90,70,0.02) 2px, rgba(100,90,70,0.02) 4px);
 }
 
 .menu-title {
-  font-family: 'Creepster', cursive;
+  font-family: 'Oswald', sans-serif;
   font-size: clamp(2.5rem, 8vw, 6rem);
-  color: var(--toxic);
+  font-weight: 700;
+  color: var(--bone);
   text-shadow:
-    0 0 20px rgba(57,255,20,0.5),
-    0 0 40px rgba(57,255,20,0.3),
+    0 2px 4px rgba(0,0,0,0.6),
     0 4px 0 var(--blood),
     0 8px 0 rgba(0,0,0,0.5);
-  letter-spacing: 4px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
   position: relative;
   z-index: 1;
-  animation: titlePulse 3s ease-in-out infinite;
-}
-
-@keyframes titlePulse {
-  0%, 100% { text-shadow: 0 0 20px rgba(57,255,20,0.5), 0 0 40px rgba(57,255,20,0.3), 0 4px 0 var(--blood), 0 8px 0 rgba(0,0,0,0.5); }
-  50% { text-shadow: 0 0 30px rgba(57,255,20,0.8), 0 0 60px rgba(57,255,20,0.5), 0 4px 0 var(--blood), 0 8px 0 rgba(0,0,0,0.5); }
 }
 
 .menu-subtitle {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: clamp(0.7rem, 2vw, 1rem);
   color: var(--blood);
   letter-spacing: 8px;
@@ -100,36 +89,35 @@ canvas {
 }
 
 .menu-btn {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 1rem;
   font-weight: 700;
   padding: 14px 48px;
   border: 2px solid var(--toxic);
-  background: rgba(57,255,20,0.05);
+  background: rgba(143,168,90,0.08);
   color: var(--toxic);
   cursor: pointer;
   letter-spacing: 3px;
   text-transform: uppercase;
   transition: all 0.2s;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
 }
 
 .menu-btn:hover {
-  background: rgba(57,255,20,0.15);
-  box-shadow: 0 0 20px rgba(57,255,20,0.3), inset 0 0 20px rgba(57,255,20,0.1);
+  background: rgba(143,168,90,0.18);
+  box-shadow: 0 0 15px rgba(143,168,90,0.2);
   transform: scale(1.03);
 }
 
 .menu-btn.primary {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(255,215,0,0.08);
+  background: rgba(212,167,71,0.08);
   font-size: 1.1rem;
 }
 
 .menu-btn.primary:hover {
-  background: rgba(255,215,0,0.2);
-  box-shadow: 0 0 25px rgba(255,215,0,0.4);
+  background: rgba(212,167,71,0.2);
+  box-shadow: 0 0 20px rgba(212,167,71,0.3);
 }
 
 .menu-controls {
@@ -162,7 +150,7 @@ canvas {
 #class-screen.active { display: flex; }
 
 .class-title {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 1.5rem;
   color: var(--toxic);
   letter-spacing: 6px;
@@ -186,19 +174,18 @@ canvas {
 
 .class-card {
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(57,255,20,0.2);
+  border: 1px solid rgba(139,109,79,0.3);
   padding: 20px;
   cursor: pointer;
   transition: all 0.3s;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
   text-align: center;
 }
 
 .class-card:hover {
   border-color: var(--toxic);
-  background: rgba(57,255,20,0.08);
+  background: rgba(143,168,90,0.08);
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(57,255,20,0.15);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
 }
 
 .class-icon {
@@ -207,7 +194,7 @@ canvas {
 }
 
 .class-name {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.85rem;
   color: var(--toxic);
   font-weight: 700;
@@ -267,12 +254,12 @@ canvas {
   transition: width 0.3s;
 }
 
-.hud-bar.health .hud-bar-fill { background: linear-gradient(90deg, #ff0033, #ff4466); }
-.hud-bar.shield .hud-bar-fill { background: linear-gradient(90deg, #2266ff, #44aaff); }
-.hud-bar.xp .hud-bar-fill { background: linear-gradient(90deg, #8822ff, #cc66ff); }
+.hud-bar.health .hud-bar-fill { background: linear-gradient(90deg, #993322, #CC3333); }
+.hud-bar.shield .hud-bar-fill { background: linear-gradient(90deg, #3A6A8A, #5A8BA8); }
+.hud-bar.xp .hud-bar-fill { background: linear-gradient(90deg, #8A6A1A, #C4922A); }
 
 .hud-label {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.6rem;
   color: var(--bone);
   letter-spacing: 2px;
@@ -280,15 +267,14 @@ canvas {
 }
 
 .hud-wave {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 1.2rem;
   color: var(--toxic);
-  font-weight: 900;
-  text-shadow: 0 0 10px rgba(57,255,20,0.5);
+  font-weight: 700;
 }
 
 .hud-score {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.8rem;
   color: var(--gold);
   letter-spacing: 2px;
@@ -302,7 +288,7 @@ canvas {
 }
 
 .hud-weapon {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.65rem;
   color: var(--toxic);
   text-align: right;
@@ -310,7 +296,7 @@ canvas {
 }
 
 .hud-ammo {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 1.4rem;
   color: var(--bone);
   text-align: right;
@@ -326,20 +312,22 @@ canvas {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 200;
-  font-family: 'Creepster', cursive;
+  font-family: 'Oswald', sans-serif;
   font-size: 4rem;
+  font-weight: 700;
   color: var(--blood);
-  text-shadow: 0 0 30px rgba(139,0,0,0.8), 0 0 60px rgba(139,0,0,0.4);
+  text-shadow: 0 0 20px rgba(139,0,0,0.5), 0 2px 4px rgba(0,0,0,0.8);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
   text-align: center;
   line-height: 1.2;
+  text-transform: uppercase;
 }
 
 #wave-banner.show { opacity: 1; }
 #wave-banner .sub {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 1rem;
   color: var(--toxic);
   letter-spacing: 4px;
@@ -363,15 +351,17 @@ canvas {
 #levelup-screen.active { display: flex; }
 
 .levelup-title {
-  font-family: 'Creepster', cursive;
+  font-family: 'Oswald', sans-serif;
   font-size: 3rem;
+  font-weight: 700;
   color: var(--gold);
-  text-shadow: 0 0 30px rgba(255,215,0,0.5);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
   margin-bottom: 10px;
+  text-transform: uppercase;
 }
 
 .levelup-subtitle {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.8rem;
   color: var(--bone);
   letter-spacing: 4px;
@@ -389,25 +379,24 @@ canvas {
 
 .perk-card {
   background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,215,0,0.2);
+  border: 1px solid rgba(212,167,71,0.2);
   padding: 20px;
   width: 180px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }
 
 .perk-card:hover {
   border-color: var(--gold);
-  background: rgba(255,215,0,0.1);
+  background: rgba(212,167,71,0.1);
   transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(255,215,0,0.2);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
 }
 
 .perk-icon { font-size: 2rem; margin-bottom: 8px; }
 .perk-name {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.75rem;
   color: var(--gold);
   font-weight: 700;
@@ -436,11 +425,13 @@ canvas {
 #gameover-screen.active { display: flex; }
 
 .gameover-title {
-  font-family: 'Creepster', cursive;
+  font-family: 'Oswald', sans-serif;
   font-size: 5rem;
+  font-weight: 700;
   color: var(--blood);
-  text-shadow: 0 0 40px rgba(139,0,0,0.8);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
   margin-bottom: 20px;
+  text-transform: uppercase;
 }
 
 .gameover-stats {
@@ -454,10 +445,10 @@ canvas {
 }
 
 .gameover-stat-val {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 2rem;
   color: var(--gold);
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .gameover-stat-label {
@@ -477,7 +468,7 @@ canvas {
   width: 140px;
   height: 140px;
   z-index: 100;
-  border: 1px solid rgba(57,255,20,0.3);
+  border: 1px solid rgba(143,168,90,0.3);
   background: rgba(0,0,0,0.7);
   display: none;
 }
@@ -491,10 +482,11 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   z-index: 150;
-  font-family: 'Creepster', cursive;
+  font-family: 'Oswald', sans-serif;
   font-size: 2rem;
+  font-weight: 700;
   color: var(--gold);
-  text-shadow: 0 0 15px rgba(255,215,0,0.6);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   opacity: 0;
   transition: opacity 0.2s, transform 0.2s;
   pointer-events: none;
@@ -513,8 +505,8 @@ canvas {
 /* ===== DAMAGE NUMBERS ===== */
 .damage-number {
   position: fixed;
-  font-family: 'Orbitron', monospace;
-  font-weight: 900;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
   font-size: 1rem;
   color: var(--gold);
   text-shadow: 0 0 4px rgba(0,0,0,0.8);
@@ -554,11 +546,10 @@ canvas {
   top: 30%;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.9rem;
   color: var(--toxic);
   letter-spacing: 3px;
-  text-shadow: 0 0 10px rgba(57,255,20,0.5);
   z-index: 160;
   pointer-events: none;
   animation: pickupFade 1.5s ease-out forwards;
@@ -585,10 +576,10 @@ canvas {
 #pause-screen.active { display: flex; }
 
 .pause-title {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Oswald', sans-serif;
   font-size: 3rem;
+  font-weight: 700;
   color: var(--toxic);
-  text-shadow: 0 0 30px rgba(57,255,20,0.5);
   margin-bottom: 20px;
   letter-spacing: 8px;
 }
@@ -615,8 +606,8 @@ canvas {
   z-index: 300;
   display: none;
   border-radius: 50%;
-  background: rgba(57,255,20,0.05);
-  border: 1px solid rgba(57,255,20,0.2);
+  background: rgba(143,168,90,0.05);
+  border: 1px solid rgba(143,168,90,0.2);
 }
 
 .joystick-zone.left { left: 20px; }

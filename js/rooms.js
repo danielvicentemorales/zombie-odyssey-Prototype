@@ -143,24 +143,24 @@ var ROOMS = [
     bossId: 'overseer'
   },
 
-  // Room 4: THE AMALGAM (final boss)
+  // Room 4: THE AMALGAM (final boss - tighter arena)
   {
     name: 'THE AMALGAM',
     type: 'boss',
     tagline: 'FACE THE ABOMINATION',
-    width: 2000,
-    height: 1100,
-    playerSpawn: { x: 1000, y: 950 },
-    exitPos: { x: 1000, y: 60, w: 80, h: 40 },
+    width: 1600,
+    height: 1000,
+    playerSpawn: { x: 800, y: 850 },
+    exitPos: { x: 800, y: 60, w: 80, h: 40 },
     enemies: [],
     spawnPoints: [
-      { x: 100, y: 100 }, { x: 1900, y: 100 },
-      { x: 100, y: 1000 }, { x: 1900, y: 1000 }
+      { x: 100, y: 100 }, { x: 1500, y: 100 },
+      { x: 100, y: 900 }, { x: 1500, y: 900 }
     ],
     walls: [
       // 2 small pillars for minimal cover
-      { x: 650, y: 500, w: 50, h: 50 },
-      { x: 1300, y: 500, w: 50, h: 50 }
+      { x: 520, y: 450, w: 50, h: 50 },
+      { x: 1030, y: 450, w: 50, h: 50 }
     ],
     bossId: 'amalgam'
   },
@@ -326,6 +326,9 @@ function initHub() {
   interactables.push(bossPortal);
   hubPortals.push(bossPortal);
 
+  // Regenerate scenery for hub
+  generateScenery(WORLD_W, WORLD_H, 180);
+
   // Show hub banner
   showRoomBanner(HUB_ROOM);
 }
@@ -464,6 +467,9 @@ function initRoom(index) {
   if (room.type === 'extraction') {
     initExtraction(room.beaconPos);
   }
+
+  // Regenerate scenery for room
+  generateScenery(WORLD_W, WORLD_H, 180);
 
   // Show banner
   showRoomBanner(room);
@@ -687,7 +693,7 @@ function spawnRoomZombie(type, spawnPoint) {
   var sx = spawnPoint.x + (Math.random() - 0.5) * 60;
   var sy = spawnPoint.y + (Math.random() - 0.5) * 60;
 
-  zombies.push({
+  var zombie = {
     x: Math.max(20, Math.min(WORLD_W - 20, sx)),
     y: Math.max(20, Math.min(WORLD_H - 20, sy)),
     vx: 0, vy: 0,
@@ -710,5 +716,15 @@ function spawnRoomZombie(type, spawnPoint) {
     shootCd: 0,
     knockback: 0,
     kbx: 0, kby: 0
-  });
+  };
+
+  if (type === 'spitter') {
+    var patterns = ['spread', 'burst', 'aimed_double'];
+    zombie.patternType = patterns[Math.floor(Math.random() * patterns.length)];
+    zombie.burstQueue = 0;
+    zombie.burstTimer = 0;
+    zombie.burstAngle = 0;
+  }
+
+  zombies.push(zombie);
 }
